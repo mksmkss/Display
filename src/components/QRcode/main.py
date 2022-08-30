@@ -72,9 +72,11 @@ def generate_qr_pdf(excel_path,output_path):
                     
                     id=_id_list[j+10*i][0]
                     sns=_id_list[j+10*i][1]
-
                     #画像の挿入
-                    generate_qr("https://www.instagram.com/{}?utm_source=qr".format(id),sns,"{}_{}.png".format(sns,id),output_path)
+                    if sns == "instagram":
+                        generate_qr("https://www.instagram.com/{}?utm_source=qr".format(id),sns,"{}_{}.png".format(sns,id),output_path)
+                    else:
+                        generate_qr("https://twitter.com/{}".format(id),sns,"{}_{}.png".format(sns,id),output_path)
                     if system == 'Darwin':
                         image = Image.open("{}/QRcodes/{}_{}.png".format(output_path,sns,id))
                     else:
