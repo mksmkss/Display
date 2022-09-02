@@ -3,8 +3,9 @@ import sys
 import platform
 import PySimpleGUI as sg
 
-from src.components.A4Paper import main as A4Paper
+from src.components.Tag import main as Tag
 from src.components.QRcode import main as QRcode
+from src.components.Description import main as Description
 
 sg.theme('Dark Blue 3')
 
@@ -34,17 +35,19 @@ if event == 'Generate':
     choose_window.close()
     excelFilePath=values['excelFilePath']
     outputFolder=values['outputFolder']
-    if system =='Darwin':
-        os.mkdir(outputFolder+'/'+'QRCodes')
-        os.mkdir(outputFolder+'/'+'Tags PDF')
-        os.mkdir(outputFolder+'/'+'QRcodes PDF')
-    elif system =='Windows':
-        os.mkdir(outputFolder+'\\'+'QRCodes')
-        os.mkdir(outputFolder+'\\'+'Tags PDF')
-        os.mkdir(outputFolder+'\\'+'QRcodes PDF')
 
+    mkdir_list = ['QRcode','Tag PDF','QRcode PDF','Description PDF','Sample PDF']
+    if system =='Darwin':
+        for i in mkdir_list:
+            os.makedirs('{}/{}'.format(outputFolder,i),exist_ok=True)
+
+    elif system =='Windows':
+        for i in mkdir_list:
+            os.makedirs('{}\\{}'.format(outputFolder,i),exist_ok=True)
+            
     QRcode.generate_qr_pdf(excelFilePath,outputFolder)
-    A4Paper.generate_tag_pdf(excelFilePath,outputFolder)
+    Tag.generate_tag_pdf(excelFilePath,outputFolder)
+    Description.generate_description_pdf(excelFilePath,outputFolder)
     
     fin_layout=[
         [sg.Text('生成が完了しました',font=('Meiryo UI',15,'bold'))],

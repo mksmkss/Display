@@ -3,7 +3,11 @@ import pandas as pd
 import platform
 from os import system
 from PIL import Image
-from .qrcode_generate import QRGenerator
+
+if __name__ == '__main__':
+    from qrcode_generate import QRGenerator
+else: 
+    from .qrcode_generate import QRGenerator
 
 def generate_qr(qr_link,sns,qr_name,output_path,qr_ver= 8):
     # QR versionについては，https://www.qrcode.com/about/version.htmlを参照
@@ -25,10 +29,10 @@ def generate_qr(qr_link,sns,qr_name,output_path,qr_ver= 8):
     link = QRGen(qr_link,logo=img, qr="colored blue", version=qr_ver)
     
     if system == 'Darwin':
-        link.save("{}/QRcodes/{}".format(output_path,qr_name))
-        print("{}/QRcodes/{}".format(output_path,qr_name))
+        link.save("{}/QRcode/{}".format(output_path,qr_name))
+        print("{}/QRcode/{}".format(output_path,qr_name))
     else:
-        link.save("{}\\QRcodes\\{}".format(output_path,qr_name))
+        link.save("{}\\QRcode\\{}".format(output_path,qr_name))
     
     return link
 

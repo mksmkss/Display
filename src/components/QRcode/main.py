@@ -1,8 +1,6 @@
 import math
-import textwrap
-import pandas as pd
-from PIL import Image
 import platform
+from PIL import Image
 from xml.etree.ElementTree import tostring
 
 from reportlab.pdfgen import canvas
@@ -11,7 +9,10 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase.pdfmetrics import stringWidth
 
-from .functions import *
+if __name__ == "__main__":
+    from functions import *
+else: 
+    from .functions import *
 
 cards_num= (4, 5)  #カードをA4に何枚配置するか（横の枚数, 縦の枚数）
 A4_mm = (210, 297)  #A4用紙のサイズをmmで指定(横、縦)
@@ -45,9 +46,9 @@ def generate_qr_pdf(excel_path,output_path):
 
             #A4のpdfを作成する
             if system == 'Darwin':
-                file_name = '{}/QRcodes PDF/qr_{}.pdf'.format(output_path,i)
+                file_name = '{}/QRcode PDF/qr_{}.pdf'.format(output_path,i)
             else:
-                file_name = '{}\\QRcodes PDF\\qr_{}.pdf'.format(output_path,i)
+                file_name = '{}\\QRcode PDF\\qr_{}.pdf'.format(output_path,i)
             page = canvas.Canvas(file_name, pagesize=A4)
 
             font_size = 20
@@ -78,9 +79,9 @@ def generate_qr_pdf(excel_path,output_path):
                     else:
                         generate_qr("https://twitter.com/{}".format(id),sns,"{}_{}.png".format(sns,id),output_path)
                     if system == 'Darwin':
-                        image = Image.open("{}/QRcodes/{}_{}.png".format(output_path,sns,id))
+                        image = Image.open("{}/QRcode/{}_{}.png".format(output_path,sns,id))
                     else:
-                        image = Image.open("{}\\QRcodes\\{}_{}.png".format(output_path,sns,id))
+                        image = Image.open("{}\\QRcode\\{}_{}.png".format(output_path,sns,id))
                     #to broaden image
                     page.drawInlineImage(image, pos[0] + card[0]/2 - 55, pos[1] + card[1]/6, width=110, height= 110)
                    
@@ -115,9 +116,5 @@ def generate_qr_pdf(excel_path,output_path):
             break
 
 
-    
-
-# if __name__ == "__main__":
-#     # _data=get_plates_list()
-    
-#     generate_qr_pdf("写真展フォーム　テンプレート.xlsx","/Users/masataka/Desktop")
+if __name__ == "__main__":
+    generate_qr_pdf("/Users/masataka/Desktop/写真展フォーム　テンプレート.xlsx","/Users/masataka/Desktop/Data")

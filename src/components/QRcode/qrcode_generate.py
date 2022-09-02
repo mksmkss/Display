@@ -1,8 +1,4 @@
-import os
-import sys
-import requests
 import pyqrcode
-from io import BytesIO
 from PIL import Image, ImageDraw
 
 
