@@ -1,4 +1,5 @@
 import os
+import time
 import platform
 import PySimpleGUI as sg
 
@@ -39,6 +40,14 @@ if event == "Generate":
     excelFilePath = values["excelFilePath"]
     outputFolder = values["outputFolder"]
 
+    progress_layout = [
+        [sg.Text("進捗状況", font=("Meiryo UI", 15, "bold"))],
+        [sg.ProgressBar(100, orientation="h", size=(20, 20), key="progressbar")],
+    ]
+    progress_window = sg.Window("Plate Generator", progress_layout)
+
+    progress_bar = progress_window["progressbar"]
+
     mkdir_list = ["QRcode", "Tag PDF", "QRcode PDF", "Description PDF", "Sample PDF"]
     if system == "Darwin":
         for i in mkdir_list:
@@ -48,9 +57,25 @@ if event == "Generate":
         for i in mkdir_list:
             os.makedirs(f"{outputFolder}\\{i}", exist_ok=True)
 
-    QRcode.generate_qr_pdf(excelFilePath, outputFolder)
+    # Tag
+    event, values = progress_window.read(timeout=0)
+    progress_bar.update_bar(10)
     Tag.generate_tag_pdf(excelFilePath, outputFolder)
+
+    # QRcode
+    event, values = progress_window.read(timeout=0)
+    progress_bar.update_bar(40)
+    QRcode.generate_qr_pdf(excelFilePath, outputFolder)
+
+    # Description
+    event, values = progress_window.read(timeout=0)
+    progress_bar.update_bar(70)
     Description.generate_description_pdf(excelFilePath, outputFolder)
+
+    event, values = progress_window.read(timeout=0)
+    progress_bar.update_bar(100)
+    time.sleep(1)
+    progress_window.close()
 
     fin_layout = [
         [sg.Text("生成が完了しました", font=("Meiryo UI", 15, "bold"))],

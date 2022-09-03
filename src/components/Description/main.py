@@ -1,11 +1,7 @@
 # from msilib.schema import Component
-from doctest import debug_script
 import math
 import textwrap
-import pandas as pd
-from PIL import Image
 import platform
-from xml.etree.ElementTree import tostring
 
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -91,11 +87,7 @@ def generate_description_pdf(excel_path, output_path):
                         # ページのフォントを指定
                         page.setFont("Meiryo UI", 25)
                         description_width_list.append(
-                            round(
-                                page.stringWidth(
-                                    description_list[k[0]], "Meiryo UI", 25
-                                )
-                            )
+                            round(stringWidth(description_list[k[0]], "Meiryo UI", 25))
                         )
 
                         x_list.append(
