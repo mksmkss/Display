@@ -1,6 +1,7 @@
 import os
 import time
 import platform
+import webbrowser
 import PySimpleGUI as sg
 
 from src.components.Tag import main as Tag
@@ -22,6 +23,14 @@ choose_layout = [
         sg.Text(),
         sg.FolderBrowse("Browse", key="outputFolder"),
     ],
+    [
+        sg.Text(
+            "使い方はこちら",
+            font=("Meiryo UI", 10, "underline"),
+            key="howToUse",
+            enable_events=True,
+        )
+    ],
     [sg.Ok("Generate"), sg.Cancel("Cancel")],
 ]
 
@@ -31,6 +40,8 @@ while True:
     event, values = choose_window.read()  # いちいち取得しないといけない
     if event == "Generate" or event == "Cancel":
         break
+    if event == "howToUse":
+        webbrowser.open("https://github.com/mksmkss/Display")
 
 print(values)
 
