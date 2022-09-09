@@ -69,7 +69,7 @@ def generate_tag_pdf(excel_path, output_path):
                     if j + 10 * i >= len(_data_list):
                         page.save()
                         isEnd = True
-                        print("end1")
+                        print("First loop is done!")
                         break
 
                     title = _data_list[j + 10 * i][0]
@@ -109,14 +109,14 @@ def generate_tag_pdf(excel_path, output_path):
                     j += 1
                     pos[0] += card[0]
                 if isEnd:
-                    print("end2")
+                    print("Second loop is done!")
                     break
 
                 pos[0] = margin[0]
                 pos[1] += card[1]
 
             if isEnd:
-                print("end3")
+                print("Third loop is done!")
                 break
 
         if isEnd is False:

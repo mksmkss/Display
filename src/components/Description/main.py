@@ -1,4 +1,5 @@
 # from msilib.schema import Component
+import sys
 import math
 import textwrap
 import platform
@@ -24,6 +25,7 @@ to_px = A4[0] / A4_mm[0]  # mmをpxに変換
 card = tuple((x * to_px for x in card_mm))  # カードのサイズpx
 margin = tuple((x * to_px for x in margin_mm))  # 余白のサイズpx
 
+print(sys.argv[0])
 fontpath = "assets/MeiryoUI-03.ttf"
 pdfmetrics.registerFont(TTFont("Meiryo UI", fontpath))
 
@@ -33,7 +35,7 @@ system = platform.system()
 def generate_description_pdf(excel_path, output_path):
     _data_list = get_description_list(excel_path)
     page_len = math.ceil(len(_data_list) / cards_num[0] * cards_num[1])
-    print(page_len)
+    # print(page_len)
 
     isEnd = False
     for i in range(page_len):
@@ -71,7 +73,7 @@ def generate_description_pdf(excel_path, output_path):
                     if j + 10 * i >= len(_data_list):
                         page.save()
                         isEnd = True
-                        print("end1")
+                        print("First loop is done!")
                         break
 
                     description = _data_list[j + 10 * i]
@@ -109,14 +111,14 @@ def generate_description_pdf(excel_path, output_path):
                     j += 1
                     pos[0] += card[0]
                 if isEnd:
-                    print("end2")
+                    print("Second loop is done!")
                     break
 
                 pos[0] = margin[0]
                 pos[1] += card[1]
 
             if isEnd:
-                print("end3")
+                print("Third loop is done!")
                 break
 
         if isEnd is False:

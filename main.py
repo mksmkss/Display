@@ -1,3 +1,5 @@
+# pyinstaller main.py --onefile --icon=icon.ico
+
 import os
 import time
 import platform
