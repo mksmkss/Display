@@ -128,7 +128,7 @@ def generate_description_pdf(excel_path, output_path, main_path):
             # PDFファイルを保存
             page.save()
         else:
-            print("end4")
+            print("Fourth loop is done!")
             break
 
 
