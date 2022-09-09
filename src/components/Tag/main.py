@@ -24,13 +24,17 @@ to_px = A4[0] / A4_mm[0]  # mmをpxに変換
 card = tuple((x * to_px for x in card_mm))  # カードのサイズpx
 margin = tuple((x * to_px for x in margin_mm))  # 余白のサイズpx
 
-fontpath = "assets/MeiryoUI-03.ttf"
-pdfmetrics.registerFont(TTFont("Meiryo UI", fontpath))
-
 system = platform.system()
 
 
-def generate_tag_pdf(excel_path, output_path):
+def generate_tag_pdf(excel_path, output_path, main_path):
+    # わざわざsys.argv使っているのは、pyinstallerでexe化した時のエラーを回避するため
+    if system == "Darwin":
+        font_path = f"{main_path}/assets/MeiryoUI-03.ttf"
+    else:
+        font_path = f"{main_path}\\assets\\MeiryoUI-03.ttf"
+    pdfmetrics.registerFont(TTFont("Meiryo UI", font_path))
+
     _data_list = get_plates_list(excel_path)
     page_len = math.ceil(len(_data_list) / cards_num[0] * cards_num[1])
     print(page_len)
@@ -129,5 +133,7 @@ def generate_tag_pdf(excel_path, output_path):
 
 if __name__ == "__main__":
     generate_tag_pdf(
-        "/Users/masataka/Desktop/写真展フォーム　テンプレート.xlsx", "/Users/masataka/Desktop/Data"
+        "/Users/masataka/Desktop/写真展フォーム　テンプレート.xlsx",
+        "/Users/masataka/Desktop/Data",
+        "/Users/masataka/Coding/Pythons/Licosha/Display",
     )

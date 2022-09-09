@@ -21,13 +21,16 @@ to_px = A4[0] / A4_mm[0]  # mmをpxに変換
 card = tuple((x * to_px for x in card_mm))  # カードのサイズpx
 margin = tuple((x * to_px for x in margin_mm))  # 余白のサイズpx
 
-fontpath = "assets/MeiryoUI-03.ttf"
-pdfmetrics.registerFont(TTFont("Meiryo UI", fontpath))
-
 system = platform.system()
 
 
-def generate_qr_pdf(excel_path, output_path):
+def generate_qr_pdf(excel_path, output_path, main_path):
+    # わざわざsys.argv使っているのは、pyinstallerでexe化した時のエラーを回避するため
+    if system == "Darwin":
+        font_path = f"{main_path}/assets/MeiryoUI-03.ttf"
+    else:
+        font_path = f"{main_path}\\assets\\MeiryoUI-03.ttf"
+    pdfmetrics.registerFont(TTFont("Meiryo UI", font_path))
     _instagram_data = get_id_list(excel_path, "instagram")
     _twitter_data = get_id_list(excel_path, "twitter")
 

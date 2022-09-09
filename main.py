@@ -1,6 +1,7 @@
 # pyinstaller main.py --onefile --icon=icon.ico
 
 import os
+import sys
 import time
 import platform
 import webbrowser
@@ -13,6 +14,8 @@ from src.components.Description import main as Description
 sg.theme("Dark Blue 3")
 
 system = platform.system()
+main_path = os.path.dirname(sys.argv[0])
+print(f"This program is working on {main_path}")
 
 choose_layout = [
     [sg.Text("使用するエクセルファイルを選択してください", font=("Meiryo UI", 15, "bold"))],
@@ -73,17 +76,17 @@ if event == "Generate":
     # Tag
     event, values = progress_window.read(timeout=0)
     progress_bar.update_bar(10)
-    Tag.generate_tag_pdf(excelFilePath, outputFolder)
+    Tag.generate_tag_pdf(excelFilePath, outputFolder, main_path)
 
     # QRcode
     event, values = progress_window.read(timeout=0)
     progress_bar.update_bar(40)
-    QRcode.generate_qr_pdf(excelFilePath, outputFolder)
+    QRcode.generate_qr_pdf(excelFilePath, outputFolder, main_path)
 
     # Description
     event, values = progress_window.read(timeout=0)
     progress_bar.update_bar(70)
-    Description.generate_description_pdf(excelFilePath, outputFolder)
+    Description.generate_description_pdf(excelFilePath, outputFolder, main_path)
 
     event, values = progress_window.read(timeout=0)
     progress_bar.update_bar(100)
