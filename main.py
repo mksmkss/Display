@@ -59,7 +59,7 @@ if event == "Generate":
 
     progress_bar = progress_window["progressbar"]
 
-    mkdir_list = ["QRcode", "Tag PDF", "QRcode PDF", "Description PDF", "Sample PDF"]
+    mkdir_list = ["QRcode", "Tag PDF", "QRcode PDF", "Description PDF"]
     if system == "Darwin":
         for i in mkdir_list:
             os.makedirs(f"{outputFolder}/{i}", exist_ok=True)
