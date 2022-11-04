@@ -13,11 +13,13 @@ def get_description_list(excel_path):
         # nanはfloat64型なのでnanの判定はこうする．i=="nan"ではだめ．
         if type(i) != float:
             for j in toArray(i):
-                description_list.append(j)
+                print(j, type(j) != float)
+                if j != "":
+                    description_list.append(j)
     print(description_list)
 
     return description_list
 
 
 if __name__ == "__main__":
-    get_description_list("/Users/masataka/Desktop/写真展フォーム　テンプレート.xlsx")
+    get_description_list("/Users/masataka/Desktop/リコシャ　2022早稲田祭展　写真収集フォーム.xlsx")

@@ -31,10 +31,10 @@ system = platform.system()
 def generate_description_pdf(excel_path, output_path, main_path):
     # わざわざsys.argv使っているのは、pyinstallerでexe化した時のエラーを回避するため
     if system == "Darwin":
-        font_path = f"{main_path}/assets/MeiryoUI-03.ttf"
+        font_path = f"{main_path}/assets/YUMIN.TTF"
     else:
         font_path = f"{main_path}\\assets\\MeiryoUI-03.ttf"
-    pdfmetrics.registerFont(TTFont("Meiryo UI", font_path))
+    pdfmetrics.registerFont(TTFont("usefont", font_path))
 
     _data_list = get_description_list(excel_path)
     page_len = math.ceil(len(_data_list) / cards_num[0] * cards_num[1])
@@ -59,8 +59,8 @@ def generate_description_pdf(excel_path, output_path, main_path):
 
             page = canvas.Canvas(file_name, pagesize=A4)
 
-            font_size = 20
-            page.setFont("Meiryo UI", font_size)
+            font_size = 16
+            page.setFont("usefont", font_size)
 
             # 線の太さを指定
             page.setLineWidth(1)
@@ -82,7 +82,7 @@ def generate_description_pdf(excel_path, output_path, main_path):
                     description = _data_list[j + 10 * i]
 
                     # wrap(テキストデータ,文字数)
-                    description_list = textwrap.wrap(description, 12)
+                    description_list = textwrap.wrap(description, 16)
 
                     # それぞれのdescriptionの位置を取得，複数行にまたがる場合も考慮
                     description_width_list = []
@@ -90,9 +90,13 @@ def generate_description_pdf(excel_path, output_path, main_path):
                     y_list = []
                     for k in enumerate(description_list):
                         # ページのフォントを指定
-                        page.setFont("Meiryo UI", 25)
+                        page.setFont("usefont", font_size)
                         description_width_list.append(
-                            round(stringWidth(description_list[k[0]], "Meiryo UI", 25))
+                            round(
+                                stringWidth(
+                                    description_list[k[0]], "usefont", font_size
+                                )
+                            )
                         )
 
                         x_list.append(
@@ -102,10 +106,10 @@ def generate_description_pdf(excel_path, output_path, main_path):
                             pos[1]
                             + (card[1] / 2)
                             + 12.5 * (len(description_list) - 2)
-                            - 25 * k[0]
+                            - font_size * k[0]
                         )
 
-                    page.setFont("Meiryo UI", 25)
+                    page.setFont("usefont", font_size)
                     for k in enumerate(description_list):
                         page.drawString(
                             x_list[k[0]], y_list[k[0]], description_list[k[0]]
@@ -134,7 +138,7 @@ def generate_description_pdf(excel_path, output_path, main_path):
 
 if __name__ == "__main__":
     generate_description_pdf(
-        "/Users/masataka/Desktop/写真展フォーム　テンプレート.xlsx",
+        "/Users/masataka/Desktop/リコシャ　2022早稲田祭展　写真収集フォーム.xlsx",
         "/Users/masataka/Desktop/Data",
         "/Users/masataka/Coding/Pythons/Licosha/Display",
     )
