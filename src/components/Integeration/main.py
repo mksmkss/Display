@@ -4,8 +4,14 @@ import platform
 
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase import pdfmetrics, cidfonts
 from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.colors import HexColor
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import mm
+from reportlab.platypus import Paragraph
+
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 
@@ -26,18 +32,32 @@ margin = tuple((x * to_px for x in margin_mm))  # 余白のサイズpx
 system = platform.system()
 
 
+def textParagraph(c, text, x, y):
+    """"""
+    style = getSampleStyleSheet()
+    width, height = letter
+    p = Paragraph(text, style=style["Normal"])
+    p.wrapOn(c, width, height)
+    p.drawOn(c, x, y, mm)
+
+
 def generate_caption_pdf(excel_path, output_path, main_path):
     # わざわざsys.argv使っているのは、pyinstallerでexe化した時のエラーを回避するため
     if system == "Darwin":
         font_path = f"{main_path}/assets/MeiryoUI-03.ttf"
     else:
         font_path = f"{main_path}\\assets\\MeiryoUI-03.ttf"
-    # pdfmetrics.registerFont(TTFont("usefont", UnicodeCIDFont("HeiseiMin-W3")))
+    pdfmetrics.registerFont(cidfonts.UnicodeCIDFont("HeiseiMin-W3"))
     pdfmetrics.registerFont(TTFont("usefont", font_path))
 
     _plates_list = get_plates_list(excel_path)
     _description_list = get_description_list(excel_path)
     page_len = math.ceil(len(_plates_list) / cards_num[0] * cards_num[1])
+    # _instagram_data = get_id_list(excel_path, "instagram")
+    # _twitter_data = get_id_list(excel_path, "twitter")
+    # _id_list = _instagram_data + _twitter_data
+    _id_list= get_ids_list(excel_path)
+
     print(page_len)
 
     isEnd = False
@@ -69,11 +89,11 @@ def generate_caption_pdf(excel_path, output_path, main_path):
             for y in range(cards_num[1]):
                 for x in range(cards_num[0]):
                     # 図形（長方形、直線）とテキストの描画
-                    page.rect(pos[0], pos[1], card[0], card[1])
+                    page.rect(pos[0], pos[1], card[0], card[1], fill=False)
 
-                    # # 下の黒いところの描画
-                    # page.setFillColorRGB(44, 44, 46)
-                    # page.rect(pos[0], pos[1], card[0], card[1] / 4.2, fill=True)
+                    # 下の黒いところの描画
+                    page.setFillColor(HexColor("#2c2c2e"))
+                    page.rect(pos[0], pos[1], card[0], card[1] / 4.2, fill=1)
 
                     # 最終ページはデータが途中で消えバグるので，回避
                     if j + 10 * i >= len(_plates_list):
@@ -95,7 +115,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                     title_x = []
                     title_y = []
 
-                    description_width_list = []
+                    # description_width_list = []
                     description_x = []
                     description_y = []
 
@@ -121,24 +141,25 @@ def generate_caption_pdf(excel_path, output_path, main_path):
 
                     # pennameの位置を取得
                     penname_width = round(
-                        page.stringWidth(penname, "usefont", penname_size)
+                        page.stringWidth(penname, "HeiseiMin-W3", penname_size)
                     )
-                    # titke_x,yを流用
-                    title_x.append(pos[0] + card[0] - card[0] * 0.08)
+
+                    # pennameの位置,titke_x,yを流用
+                    title_x.append(pos[0] + card[0] - card[0] * 0.08 - penname_width)
                     title_y.append(pos[1] + card[1] * 0.08)
 
                     # titleの描画
-                    # page.setFillColorRGB(44, 44, 46)
+                    page.setFillColor(HexColor("#2c2c2e"))
                     page.setFont("usefont", title_size)
                     page.drawString(title_x[0], title_y[0], title)
 
                     # pennameの描画
-                    page.setFillColorRGB(237, 237, 235)
-                    page.setFont("usefont", penname_size)
-                    page.drawRightString(title_x[1], title_y[1], penname)
+                    penname = f"""<font name="HeiseiMin-W3" color="rgb(237, 237, 235)" size={penname_size}>{penname}</font>
+                    """
+                    textParagraph(page, penname, title_x[1], title_y[1])
 
                     # descriptionの描画
-                    page.setFillColorRGB(44, 44, 46)
+                    page.setFillColor(HexColor("#2c2c2e"))
                     page.setFont("usefont", description_size)
                     for k in enumerate(description_list):
                         page.drawString(
@@ -146,6 +167,39 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                             description_y[k[0]],
                             description_list[k[0]],
                         )
+
+                    instagram_id = _id_list[j + 10 * i][0]
+                    twitter_id = _id_list[j + 10 * i][1]
+                    # 画像の挿入
+                    if instagram_id!="":
+                        generate_qr(
+                            f"https://www.instagram.com/{instagram_id}?utm_source=qr",
+                            "instagram",
+                            f"instagram_{instagram_id}.png",
+                            output_path,
+                        )
+                    elif twitter_id!="":
+                        generate_qr(
+                            f"https://twitter.com/{twitter_id}",
+                            "twitter",
+                            f"twitter_{twitter_id}.png",
+                            output_path,
+                        )
+                    if system == "Darwin":
+                        image = Image.open(f"{output_path}/QRcode/{sns}_{id}.png")
+                    else:
+                        image = Image.open(f"{output_path}\\QRcode\\{sns}_{id}.png")
+                    if id != "":
+                        if 
+                        page.drawInlineImage(
+                            image,
+                            pos[0] + card[0] / 2 - 55,
+                            pos[1] + card[1] / 6,
+                            width=card[1] / 4.3,
+                            height=card[1] / 4.3,
+                        )
+                    else:
+                        print("IDが空です")
 
                     j += 1
                     pos[0] += card[0]
