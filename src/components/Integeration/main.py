@@ -1,19 +1,19 @@
 import math
+import json
 import textwrap
 import platform
 
+from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from reportlab.pdfbase import pdfmetrics, cidfonts
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.colors import HexColor
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import mm
 from reportlab.platypus import Paragraph
+from reportlab.lib.colors import HexColor
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics, cidfonts
+from reportlab.lib.styles import getSampleStyleSheet
 
 from reportlab.pdfbase.pdfmetrics import stringWidth
-from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 
 if __name__ == "__main__":
     from functions import *
@@ -25,9 +25,8 @@ A4_mm = (210, 297)  # A4用紙のサイズをmmで指定(横、縦)
 card_mm = (105, 59)  # 1枚のラベルのサイズをmmで指定(横、縦)
 margin_mm = (0, 0)  # 余白をmmで指定(左右、上下)
 
-to_px = A4[0] / A4_mm[0]  # mmをpxに変換
-card = tuple((x * to_px for x in card_mm))  # カードのサイズpx
-margin = tuple((x * to_px for x in margin_mm))  # 余白のサイズpx
+card = tuple((to_px(x) for x in card_mm))  # カードのサイズpx
+margin = tuple((to_px(x) for x in margin_mm))  # 余白のサイズpx
 
 system = platform.system()
 
@@ -53,10 +52,6 @@ def generate_caption_pdf(excel_path, output_path, main_path):
     _plates_list = get_plates_list(excel_path)
     _description_list = get_description_list(excel_path)
     page_len = math.ceil(len(_plates_list) / cards_num[0] * cards_num[1])
-    # _instagram_data = get_id_list(excel_path, "instagram")
-    # _twitter_data = get_id_list(excel_path, "twitter")
-    # _id_list = _instagram_data + _twitter_data
-    _id_list= get_ids_list(excel_path)
 
     print(page_len)
 
@@ -81,6 +76,8 @@ def generate_caption_pdf(excel_path, output_path, main_path):
             penname_size = 13
             description_size = 12
 
+            rect_height = 14
+
             # 線の太さを指定
             page.setLineWidth(1)
             # 描画の初期地点
@@ -93,7 +90,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
 
                     # 下の黒いところの描画
                     page.setFillColor(HexColor("#2c2c2e"))
-                    page.rect(pos[0], pos[1], card[0], card[1] / 4.2, fill=1)
+                    page.rect(pos[0], pos[1], card[0], to_px(rect_height), fill=1)
 
                     # 最終ページはデータが途中で消えバグるので，回避
                     if j + 10 * i >= len(_plates_list):
@@ -107,8 +104,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                     description = _description_list[j + 10 * i]
 
                     # wrap(テキストデータ,文字数)
-                    # title_list = textwrap.wrap(title, 10)
-                    description_list = textwrap.wrap(description, 16)
+                    description_list = textwrap.wrap(description, 17)
 
                     # それぞれのtitleの位置を取得，複数行にまたがる場合も考慮
                     title_width_list = []
@@ -120,9 +116,9 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                     description_y = []
 
                     # titleは複数行を考慮しない
-                    page.setFont("usefont", title_size)
+                    page.setFont("HeiseiMin-W3", title_size)
                     title_width_list.append(
-                        round(page.stringWidth(title, "usefont", title_size))
+                        round(page.stringWidth(title, "HeiseiMin-W3", title_size))
                     )
                     # 座標の基準は文字の左下
                     title_x.append(pos[0] + card[0] * 0.08)
@@ -130,7 +126,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
 
                     for k in enumerate(description_list):
                         # description
-                        page.setFont("usefont", description_size)
+                        page.setFont("HeiseiMin-W3", description_size)
                         description_x.append(pos[0] + card[0] * 0.15)
                         description_y.append(
                             pos[1]
@@ -146,21 +142,22 @@ def generate_caption_pdf(excel_path, output_path, main_path):
 
                     # pennameの位置,titke_x,yを流用
                     title_x.append(pos[0] + card[0] - card[0] * 0.08 - penname_width)
-                    title_y.append(pos[1] + card[1] * 0.08)
+                    title_y.append(
+                        pos[1] + to_px(rect_height) / 2 - penname_size / 2 + 2
+                    )
 
                     # titleの描画
                     page.setFillColor(HexColor("#2c2c2e"))
-                    page.setFont("usefont", title_size)
+                    page.setFont("HeiseiMin-W3", title_size)
                     page.drawString(title_x[0], title_y[0], title)
 
                     # pennameの描画
-                    penname = f"""<font name="HeiseiMin-W3" color="rgb(237, 237, 235)" size={penname_size}>{penname}</font>
-                    """
-                    textParagraph(page, penname, title_x[1], title_y[1])
+                    p_penname = f"""<font name="HeiseiMin-W3" color="rgb(237, 237, 235)" size={penname_size}>{penname}</font>"""
+                    textParagraph(page, p_penname, title_x[1], title_y[1])
 
                     # descriptionの描画
                     page.setFillColor(HexColor("#2c2c2e"))
-                    page.setFont("usefont", description_size)
+                    page.setFont("HeiseiMin-W3", description_size)
                     for k in enumerate(description_list):
                         page.drawString(
                             description_x[k[0]],
@@ -168,38 +165,44 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                             description_list[k[0]],
                         )
 
-                    instagram_id = _id_list[j + 10 * i][0]
-                    twitter_id = _id_list[j + 10 * i][1]
-                    # 画像の挿入
-                    if instagram_id!="":
-                        generate_qr(
-                            f"https://www.instagram.com/{instagram_id}?utm_source=qr",
-                            "instagram",
-                            f"instagram_{instagram_id}.png",
-                            output_path,
-                        )
-                    elif twitter_id!="":
-                        generate_qr(
-                            f"https://twitter.com/{twitter_id}",
-                            "twitter",
-                            f"twitter_{twitter_id}.png",
-                            output_path,
-                        )
-                    if system == "Darwin":
-                        image = Image.open(f"{output_path}/QRcode/{sns}_{id}.png")
-                    else:
-                        image = Image.open(f"{output_path}\\QRcode\\{sns}_{id}.png")
-                    if id != "":
-                        if 
-                        page.drawInlineImage(
-                            image,
-                            pos[0] + card[0] / 2 - 55,
-                            pos[1] + card[1] / 6,
-                            width=card[1] / 4.3,
-                            height=card[1] / 4.3,
-                        )
-                    else:
-                        print("IDが空です")
+                    with open(
+                        "assets/penname_to_sns.json", mode="r", encoding="UTF-8"
+                    ) as f:
+                        penname_to_sns_dict = json.load(f)
+                        sns_list = penname_to_sns_dict[penname]
+                        for l in enumerate(sns_list):
+                            id = l[1][0]
+                            sns = l[1][1]
+                            if sns == "instagram":
+                                generate_qr(
+                                    f"https://www.instagram.com/{id}?utm_source=qr",
+                                    sns,
+                                    f"{sns}_{id}.png",
+                                    output_path,
+                                )
+                            else:
+                                generate_qr(
+                                    f"https://twitter.com/{id}",
+                                    sns,
+                                    f"{sns}_{id}.png",
+                                    output_path,
+                                )
+                            if system == "Darwin":
+                                image = Image.open(
+                                    f"{output_path}/QRcode/{sns}_{id}.png"
+                                )
+                            else:
+                                image = Image.open(
+                                    f"{output_path}\\QRcode\\{sns}_{id}.png"
+                                )
+
+                            page.drawInlineImage(
+                                image,
+                                pos[0] + l[0] * to_px(rect_height + 1) + to_px(9),
+                                pos[1] + to_px(1),
+                                width=to_px(rect_height - 2),
+                                height=to_px(rect_height - 2),
+                            )
 
                     j += 1
                     pos[0] += card[0]
