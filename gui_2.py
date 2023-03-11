@@ -157,7 +157,9 @@ def Process():
     isFilled = True
     dic["year"] = year_disp.get()
     dic["exhibition_title"] = title_disp.get()
-
+    print(dic)
+    with open(f"{main_path}/settings.json", "w", encoding="utf-8") as f:
+        json.dump(dic, f, ensure_ascii=False, indent=4)
     for i in range(len(dic)):
         if list(dic.values())[i] == "":
             isFilled = False
@@ -175,7 +177,8 @@ def Process():
             "Description PDF",
             "Caption PDF",
         ]
-
+        excel_path = dic["excel_path"]
+        outputFolder_path = dic["outputFolder_path"]
         if system == "Darwin":
             for i in mkdir_list:
                 os.makedirs(f"{outputFolder_path}/{i}", exist_ok=True)
@@ -184,7 +187,7 @@ def Process():
             for i in mkdir_list:
                 os.makedirs(f"{outputFolder_path}\\{i}", exist_ok=True)
         # メインの関数はIntegration,頑張ったので昔の関数もついでに出力しておく
-        Integration.generate_caption_pdf(path_disp[0], path_disp[1], main_path)
+        Integration.generate_caption_pdf(excel_path, outputFolder_path, main_path)
         Tag.generate_tag_pdf(excel_path, outputFolder_path, main_path)
         QRcode.generate_qr_pdf(excel_path, outputFolder_path, main_path)
         Description.generate_description_pdf(excel_path, outputFolder_path, main_path)
@@ -197,7 +200,7 @@ def Process():
         title = title_disp.get()
         file_name = f"{year}_{title}.pdf"
         ManupulatePDF.merge_pdfs(
-            f"{path_disp[1]}/Caption PDF",
+            f"{outputFolder_path}/Caption PDF",
             file_name,
         )
     else:
