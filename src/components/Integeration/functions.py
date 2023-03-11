@@ -5,12 +5,10 @@ from os import system
 from PIL import Image
 from reportlab.lib.pagesizes import A4
 
-# if __name__ == "__main__":
-#     from qrcode_generate import QRGenerator
-# else:
-#     from .qrcode_generate import QRGenerator
-
-from qrcode_generate import QRGenerator
+if __name__ == "__main__":
+    from qrcode_generate import QRGenerator
+else:
+    from .qrcode_generate import QRGenerator
 
 
 def toArray(string):
