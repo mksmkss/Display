@@ -51,6 +51,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
 
     _plates_list = get_plates_list(excel_path)
     _description_list = get_description_list(excel_path)
+    _ids_dict = get_ids_dict(excel_path)
     page_len = math.ceil(len(_plates_list) / cards_num[0] * cards_num[1])
 
     print(page_len)
@@ -165,10 +166,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                             description_list[k[0]],
                         )
 
-                    with open(
-                        "assets/penname_to_sns.json", mode="r", encoding="UTF-8"
-                    ) as f:
-                        penname_to_sns_dict = json.load(f)
+                        penname_to_sns_dict = _ids_dict
                         sns_list = penname_to_sns_dict[penname]
                         for l in enumerate(sns_list):
                             id = l[1][0]

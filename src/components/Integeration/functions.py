@@ -28,7 +28,7 @@ def to_mm(px):
 
 
 def get_description_list(excel_path):
-    _description_list = pd.read_excel(excel_path, index_col=0, usecols=[10]).index
+    _description_list = pd.read_excel(excel_path, index_col=0, usecols=[9]).index
     # もし，説明文と題名等を分ける場合，空白ますは不要となるので，その場合は，二つのelseを削除すれば良い
     description_list = []
     for i in _description_list:
@@ -51,8 +51,8 @@ def get_description_list(excel_path):
 
 def get_plates_list(excel_path):
     name_list = pd.read_excel(excel_path, index_col=0, usecols=[0]).index
-    title_list = pd.read_excel(excel_path, index_col=0, usecols=[9]).index
-    penname_list = pd.read_excel(excel_path, index_col=0, usecols=[11]).index
+    title_list = pd.read_excel(excel_path, index_col=0, usecols=[8]).index
+    penname_list = pd.read_excel(excel_path, index_col=0, usecols=[10]).index
 
     k = 0
 
@@ -127,7 +127,7 @@ def get_id_list(excel_path, sns):
     return id_list
 
 
-def get_ids_list(excel_path):
+def get_ids_dict(excel_path):
     # 人ごとにまとめるver
     _name_list = pd.read_excel(excel_path, index_col=0, usecols=[0]).index
     _instagram_list = pd.read_excel(excel_path, index_col=0, usecols=[2]).index
@@ -151,7 +151,7 @@ def get_ids_list(excel_path):
 
 
 if __name__ == "__main__":
-    get_ids_list(
+    get_ids_dict(
         "/Users/masataka/Coding/Pythons/Licosha/Display/assets/リコシャ　2022早稲田祭展　写真収集フォーム.xlsx",
     )
 #     generate_qr(qr_link="aa",sns="instagram", qr_name="test.png")
