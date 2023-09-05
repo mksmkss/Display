@@ -12,19 +12,7 @@ class QR:
         self.img.save(name)
 
 class QRGenerator:
-    # def __init__(self):
-    #     self.logo1 = self.save("/Users/masataka/Desktop/IMG_5039.JPG", error_link="https://sun9-25.userapi.com/c857736/v857736023/1f5a8a/1Gb4ZfJA3uM.jpg")
-    #     self.logo2 = self.save("logotype_colored_dark.png", error_link="https://sun9-51.userapi.com/c857736/v857736023/1f5a82/NLbM6ye2fnU.jpg")
-    #     self.logo3 = self.save("logotype_mono_dark.png", error_link="https://sun9-22.userapi.com/c857736/v857736023/1f5a92/x1hQySIyfUk.jpg")
-    #     self.logo4 = self.save("logotype_mono_white.png", error_link="https://sun9-5.userapi.com/c857736/v857736023/1f5a9a/PMGzJcIn2QI.jpg")
-    # def save(self, name, error_link=""):
-    #     dir_ = os.getcwd()
-    #     os.chdir(__path__[0]+"/images")
-    #     res = Image.open(name)
-    #     os.chdir(dir_)
-    #     del dir_
-    #     return res
-    def __call__(self, url,logo,version=None, qr="colored light", encoding="utf8"):
+   def __call__(self, url,logo,version=None, qr="colored light", encoding="utf8"):
         if qr == "colored light":
             color1 = "#517BD6"
             color2 = "#51A8D6"

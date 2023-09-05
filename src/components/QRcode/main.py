@@ -85,7 +85,7 @@ def generate_qr_pdf(excel_path, output_path, main_path):
                         )
                     else:
                         generate_qr(
-                            f"https://twitter.com/{id}",
+                            f"https://x.com/{id}",
                             sns,
                             f"{sns}_{id}.png",
                             output_path,

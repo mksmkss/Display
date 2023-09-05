@@ -28,11 +28,17 @@ margin_mm = (0, 0)  # 余白をmmで指定(左右、上下)
 card = tuple((to_px(x) for x in card_mm))  # カードのサイズpx
 margin = tuple((to_px(x) for x in margin_mm))  # 余白のサイズpx
 
+# 各パラメータの調整．ちなみにQRコードの大きさもrect_heightで自動調整される
+title_size = 16
+penname_size = 13
+description_size = 12
+
+rect_height = 14
+
 system = platform.system()
 
 
 def textParagraph(c, text, x, y):
-    """"""
     style = getSampleStyleSheet()
     width, height = letter
     p = Paragraph(text, style=style["Normal"])
@@ -73,11 +79,6 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                 file_name = f"{output_path}\\Caption PDF\\caption_{i}.pdf"
             page = canvas.Canvas(file_name, pagesize=A4)
 
-            title_size = 16
-            penname_size = 13
-            description_size = 12
-
-            rect_height = 14
 
             # 線の太さを指定
             page.setLineWidth(1)
@@ -168,7 +169,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
 
                         penname_to_sns_dict = _ids_dict
                         sns_list = penname_to_sns_dict[penname]
-                        for l in enumerate(sns_list):
+                    for l in enumerate(sns_list):
                             id = l[1][0]
                             sns = l[1][1]
                             if sns == "instagram":
@@ -180,7 +181,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                                 )
                             else:
                                 generate_qr(
-                                    f"https://twitter.com/{id}",
+                                    f"https://x.com/{id}",
                                     sns,
                                     f"{sns}_{id}.png",
                                     output_path,

@@ -18,13 +18,13 @@ def generate_qr(qr_link, sns, qr_name, output_path, qr_ver=8):
     if system == "Darwin":
         # Mac OS
         if sns == "twitter":
-            img = Image.open("assets/img/icons8-ツイッター-150.png")
+            img = Image.open("assets/img/icons8-twitterx-150.png")
         elif sns == "instagram":
             img = Image.open("assets/img/icons8-instagram-150.png")
     elif system == "Windows":
         # Windows
         if sns == "twitter":
-            img = Image.open("assets\img\icons8-ツイッター-150.png")
+            img = Image.open("assets\img\icons8-twitterx-150.png")
         elif sns == "instagram":
             img = Image.open("assets\img\icons8-instagram-150.png")
     link = QRGen(qr_link, logo=img, qr="colored blue", version=qr_ver)

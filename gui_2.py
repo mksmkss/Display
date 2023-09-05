@@ -154,6 +154,7 @@ for i in enumerate(label):
 def Process():
     toplevel = customtkinter.CTkToplevel()
     toplevel.geometry("300x200")
+    toplevel.transient(app) # これでToplevelウィンドウを親ウィンドウに関連付ける
     isFilled = True
     dic["year"] = year_disp.get()
     dic["exhibition_title"] = title_disp.get()
@@ -166,10 +167,11 @@ def Process():
     ProcessLookupError = customtkinter.CTkLabel(
         master=toplevel, text="", font=("Arial", 16, "bold")
     )
-    ProcessLookupError.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
     if isFilled == True:
         toplevel.title("Processing...")
         ProcessLookupError.configure(text="処理中です...")
+        ProcessLookupError.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
+        toplevel.update()
         mkdir_list = [
             "QRcode",
             "Tag PDF",
@@ -186,8 +188,28 @@ def Process():
         elif system == "Windows":
             for i in mkdir_list:
                 os.makedirs(f"{outputFolder_path}\\{i}", exist_ok=True)
+
         # メインの関数はIntegration,頑張ったので昔の関数もついでに出力しておく
-        Integration.generate_caption_pdf(excel_path, outputFolder_path, main_path)
+        try:
+            Integration.generate_caption_pdf(excel_path, outputFolder_path, main_path)
+        except Exception as e:
+            print(e)
+            ProcessLookupError.configure(text="エラーが発生しました")
+            ProcessLookupError.place(relx=0.5, rely=0.3, anchor=tkinter.CENTER)
+            Detail = customtkinter.CTkLabel(
+                master=toplevel, text="", font=("Arial", 12)
+            )
+            Detail.configure(text=f"{e}")
+            Detail.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+            toplevel.update()
+            if str(e) == "'numpy.int64' object has no attribute 'split'":
+                Detail.configure(
+                    text="Excelの列番号がずれています\n列A:名前, 列I:作品名, 列J:説明文, 列K:ペンネーム\nとなっているか確認してください")
+                Detail.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
+                toplevel.update()
+            fin = customtkinter.CTkButton(master=toplevel, text="終了する", command=app.destroy)
+            fin.place(relx=0.5, rely=0.8, anchor=tkinter.CENTER)
+             
         Tag.generate_tag_pdf(excel_path, outputFolder_path, main_path)
         QRcode.generate_qr_pdf(excel_path, outputFolder_path, main_path)
         Description.generate_description_pdf(excel_path, outputFolder_path, main_path)
@@ -206,6 +228,7 @@ def Process():
     else:
         toplevel.title("Error")
         ProcessLookupError.configure(text="すべての項目を入力してください")
+        ProcessLookupError.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
 
 button = customtkinter.CTkButton(

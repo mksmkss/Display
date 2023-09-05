@@ -60,6 +60,8 @@ def get_plates_list(excel_path):
     plates_list = []
     penname_to_name = {}
 
+    print(title_list)
+
     while k < len(name_list):
         # 1人何個作品出したか
         works_num = len(toArray(title_list[k]))
@@ -89,13 +91,13 @@ def generate_qr(qr_link, sns, qr_name, output_path, qr_ver=8):
     if system == "Darwin":
         # Mac OS
         if sns == "twitter":
-            img = Image.open("assets/img/icons8-ツイッター-150.png")
+            img = Image.open("assets/img/icons8-twitterx-150.png")
         elif sns == "instagram":
             img = Image.open("assets/img/icons8-instagram-150.png")
     elif system == "Windows":
         # Windows
         if sns == "twitter":
-            img = Image.open("assets\img\icons8-ツイッター-150.png")
+            img = Image.open("assets\img\icons8-twitterx-150.png")
         elif sns == "instagram":
             img = Image.open("assets\img\icons8-instagram-150.png")
     link = QRGen(qr_link, logo=img, qr="mono white", version=qr_ver)
