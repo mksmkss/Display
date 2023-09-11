@@ -167,8 +167,9 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                             description_list[k[0]],
                         )
 
-                        penname_to_sns_dict = _ids_dict
-                        sns_list = penname_to_sns_dict[penname]
+                    penname_to_sns_dict = _ids_dict
+                    sns_list = penname_to_sns_dict[penname]
+                    print(f"{sns_list}, {penname}")
                     for l in enumerate(sns_list):
                             id = l[1][0]
                             sns = l[1][1]
@@ -226,7 +227,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
 
 if __name__ == "__main__":
     generate_caption_pdf(
-        "/Users/masataka/Coding/Pythons/Licosha/Display/assets/リコシャ　2022早稲田祭展　写真収集フォーム.xlsx",
-        "/Users/masataka/Desktop/Plate",
+        "/Users/masataka/Desktop/2023 夏季展.xlsx",
+        "/Users/masataka/Desktop/Plate2",
         "/Users/masataka/Coding/Pythons/Licosha/Display",
     )
