@@ -1,5 +1,11 @@
+"""
+Integrationのこのファイルが一番大事
+"""
+
+
 import math
 import json
+import budoux
 import textwrap
 import platform
 
@@ -21,6 +27,7 @@ else:
     from .functions import *
 
 cards_num = (2, 5)  # カードをA4に何枚配置するか（横の枚数, 縦の枚数）
+
 A4_mm = (210, 297)  # A4用紙のサイズをmmで指定(横、縦)
 card_mm = (105, 59)  # 1枚のラベルのサイズをmmで指定(横、縦)
 margin_mm = (0, 0)  # 余白をmmで指定(左右、上下)
@@ -49,44 +56,46 @@ def textParagraph(c, text, x, y):
 def generate_caption_pdf(excel_path, output_path, main_path):
     # わざわざsys.argv使っているのは、pyinstallerでexe化した時のエラーを回避するため
     if system == "Darwin":
-        font_path = f"{main_path}/assets/MeiryoUI-03.ttf"
+        font_path = f"{main_path}/assets/ttf/MeiryoUI-03.ttf"
     else:
-        font_path = f"{main_path}\\assets\\MeiryoUI-03.ttf"
+        font_path = f"{main_path}\\assets\\ttf\\MeiryoUI-03.ttf"
     pdfmetrics.registerFont(cidfonts.UnicodeCIDFont("HeiseiMin-W3"))
     pdfmetrics.registerFont(TTFont("usefont", font_path))
 
     _plates_list = get_plates_list(excel_path)
     _description_list = get_description_list(excel_path)
     _ids_dict = get_ids_dict(excel_path)
+    _permission_dict = get_permission_dict(excel_path)
     page_len = math.ceil(len(_plates_list) / cards_num[0] * cards_num[1])
 
     print(page_len)
 
     isEnd = False
     for i in range(page_len):
-
         # iがページ数，jが各ページにおけるカード番号
         j = 0
 
-        # A4のpdfに必要なものを描画する
+        # A4のpdfに必要なものを描画する, このwhile文はページごとに回る
         while j < cards_num[0] * cards_num[1]:
-
             # A4のpdfを作成する
-
             if system == "Darwin":
                 file_name = f"{output_path}/Caption PDF/caption_{i}.pdf"
             else:
                 file_name = f"{output_path}\\Caption PDF\\caption_{i}.pdf"
             page = canvas.Canvas(file_name, pagesize=A4)
 
-
             # 線の太さを指定
             page.setLineWidth(1)
             # 描画の初期地点
             pos = [margin[0], margin[1]]
-
+            # このfor文はカードごとに回る
             for y in range(cards_num[1]):
                 for x in range(cards_num[0]):
+                    """
+                    pos[0]：紙の左端からの距離，pos[1]：紙の下端からの距離
+                    card[0]：カードの横幅，card[1]：カードの縦幅 この大きさは上で定義してある
+                    rect_height：下の黒いところの高さ，これは上で定義してある．QRコードの大きさもこれで自動調整される
+                    """
                     # 図形（長方形、直線）とテキストの描画
                     page.rect(pos[0], pos[1], card[0], card[1], fill=False)
 
@@ -94,7 +103,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                     page.setFillColor(HexColor("#2c2c2e"))
                     page.rect(pos[0], pos[1], card[0], to_px(rect_height), fill=1)
 
-                    # 最終ページはデータが途中で消えバグるので，回避
+                    # 最終ページはデータが途中で消えバグるので，回避．つまり，最終ページがカードが10枚未満になるとき用の変数がisEnd
                     if j + 10 * i >= len(_plates_list):
                         page.save()
                         isEnd = True
@@ -105,14 +114,30 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                     penname = _plates_list[j + 10 * i][1]
                     description = _description_list[j + 10 * i]
 
-                    # wrap(テキストデータ,文字数)
-                    description_list = textwrap.wrap(description, 17)
+                    # googleの日本語parserを使う.これにより自然な改行ができるようになった
+                    parser = budoux.load_default_japanese_parser()
+                    _description = parser.parse(description)
+                    description_list = []
+                    long = 0
+                    line = ""
+                    max_len = 18
+                    for k in _description:
+                        if (long + len(k)) <= max_len:
+                            line += k
+                            long += len(k)
+                        else:
+                            description_list.append(line)
+                            line = k
+                            long = len(k)
+                    description_list.append(line)
+                    print("description_list", description_list)
 
-                    # それぞれのtitleの位置を取得，複数行にまたがる場合も考慮
+                    # それぞれのtitleの位置を取得
                     title_width_list = []
                     title_x = []
                     title_y = []
 
+                    # それぞれのdescriptionの位置を取得,複数行になることを考慮
                     # description_width_list = []
                     description_x = []
                     description_y = []
@@ -126,6 +151,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                     title_x.append(pos[0] + card[0] * 0.08)
                     title_y.append(pos[1] + card[1] * 0.8)
 
+                    # descriptionは複数行を考慮
                     for k in enumerate(description_list):
                         # description
                         page.setFont("HeiseiMin-W3", description_size)
@@ -171,45 +197,56 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                     sns_list = penname_to_sns_dict[penname]
                     print(f"{sns_list}, {penname}")
                     for l in enumerate(sns_list):
-                            id = l[1][0]
-                            sns = l[1][1]
-                            if sns == "instagram":
-                                generate_qr(
-                                    f"https://www.instagram.com/{id}?utm_source=qr",
-                                    sns,
-                                    f"{sns}_{id}.png",
-                                    output_path,
-                                )
-                            else:
-                                generate_qr(
-                                    f"https://x.com/{id}",
-                                    sns,
-                                    f"{sns}_{id}.png",
-                                    output_path,
-                                )
-                            if system == "Darwin":
-                                image = Image.open(
-                                    f"{output_path}/QRcode/{sns}_{id}.png"
-                                )
-                            else:
-                                image = Image.open(
-                                    f"{output_path}\\QRcode\\{sns}_{id}.png"
-                                )
-
-                            page.drawInlineImage(
-                                image,
-                                pos[0] + l[0] * to_px(rect_height + 1) + to_px(9),
-                                pos[1] + to_px(1),
-                                width=to_px(rect_height - 2),
-                                height=to_px(rect_height - 2),
+                        id = l[1][0]
+                        sns = l[1][1]
+                        # まず，QRコードを生成
+                        if sns == "instagram":
+                            generate_qr(
+                                f"https://www.instagram.com/{id}?utm_source=qr",
+                                sns,
+                                f"{sns}_{id}.png",
+                                output_path,
                             )
+                        else:
+                            generate_qr(
+                                f"https://x.com/{id}",
+                                sns,
+                                f"{sns}_{id}.png",
+                                output_path,
+                            )
+                        if system == "Darwin":
+                            image = Image.open(f"{output_path}/QRcode/{sns}_{id}.png")
+                        else:
+                            image = Image.open(f"{output_path}\\QRcode\\{sns}_{id}.png")
+
+                        # 次に，QRコードを描画
+                        page.drawInlineImage(
+                            image,
+                            pos[0] + l[0] * to_px(rect_height + 1) + to_px(9),
+                            pos[1] + to_px(1),
+                            width=to_px(rect_height - 2),
+                            height=to_px(rect_height - 2),
+                        )
+
+                    # No Takingの描画
+                    if _permission_dict[penname] == "No":
+                        notaking_width = to_px(10)
+                        page.drawInlineImage(
+                            Image.open("assets/img/icons8-nocamera-100.png"),
+                            pos[0] + card[0] - card[0] * 0.08 - notaking_width,
+                            pos[1] + card[1] * 0.75,
+                            width=notaking_width,
+                            height=notaking_width,
+                        )
 
                     j += 1
+                    # 次のカードの描画位置を指定，x軸方向にcard[0]分移動
                     pos[0] += card[0]
+
                 if isEnd:
                     print("Second loop is done!")
                     break
-
+                # 次のカードの描画位置を指定，y軸方向にcard[1]分移動, x軸方向は初期位置に戻す
                 pos[0] = margin[0]
                 pos[1] += card[1]
 
@@ -227,7 +264,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
 
 if __name__ == "__main__":
     generate_caption_pdf(
-        "/Users/masataka/Desktop/2023 夏季展.xlsx",
-        "/Users/masataka/Desktop/Plate2",
+        "/Users/masataka/Coding/Pythons/Licosha/Display/assets/excel/リコシャ　2023早稲田祭展　写真収集フォーム .xlsx",
+        "/Users/masataka/Desktop/plate/Caption PDF",
         "/Users/masataka/Coding/Pythons/Licosha/Display",
     )

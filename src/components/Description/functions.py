@@ -6,8 +6,8 @@ def toArray(string):
 
 
 def get_description_list(excel_path):
-    _description_list = pd.read_excel(excel_path, index_col=0, usecols=[9]).index
-
+    df = pd.read_excel(excel_path)
+    _description_list = df["[写真の詳細] 説明"]
     description_list = []
     for i in _description_list:
         # nanはfloat64型なのでnanの判定はこうする．i=="nan"ではだめ．

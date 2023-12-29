@@ -28,11 +28,15 @@ def to_mm(px):
 
 
 def get_description_list(excel_path):
-    _description_list = pd.read_excel(excel_path, index_col=0, usecols=[9]).index
+    df = pd.read_excel(excel_path)
+    _description_list = df["[写真の詳細] 説明"]
     # もし，説明文と題名等を分ける場合，空白ますは不要となるので，その場合は，二つのelseを削除すれば良い
     description_list = []
     for i in _description_list:
-        # nanはfloat64型なのでnanの判定はこうする．i=="nan"ではだめ．
+        """
+        nanはfloat64型なのでnanの判定はこうする．i=="nan"ではだめ．また，np.float64(i)だとcould not convert string to float: '|'
+        というエラーが出る．
+        """
         if type(i) != float:
             for j in toArray(i):
                 print(j, type(j) != float)
@@ -50,9 +54,10 @@ def get_description_list(excel_path):
 
 
 def get_plates_list(excel_path):
-    name_list = pd.read_excel(excel_path, index_col=0, usecols=[0]).index
-    title_list = pd.read_excel(excel_path, index_col=0, usecols=[8]).index
-    penname_list = pd.read_excel(excel_path, index_col=0, usecols=[10]).index
+    df = pd.read_excel(excel_path)
+    name_list = df["お名前"]
+    title_list = df["[写真の詳細] タイトル"]
+    penname_list = df["ペンネーム"]
 
     k = 0
 
@@ -60,25 +65,19 @@ def get_plates_list(excel_path):
     plates_list = []
     penname_to_name = {}
 
-    print(title_list)
-
     while k < len(name_list):
         # 1人何個作品出したか
         works_num = len(toArray(title_list[k]))
-        name = toArray(name_list[k])[0]
+        # 本名
+        name = name_list[k]
         for i in range(works_num):
-            # pennameを記入してくれない問題児くんがいた時用
-            if len(toArray(penname_list[k])) != works_num:
-                plates_list.append([toArray(title_list[k])[i], penname_list[k]])
-                penname_to_name[name] = penname_list[k]
-            else:
-                plates_list.append(
-                    [toArray(title_list[k])[i], toArray(penname_list[k])[i]]
-                )
-                penname_to_name[name] = toArray(penname_list[k])[i]
-
+            plates_list.append([toArray(title_list[k])[i], penname_list[k]])
+            # dictに追加
+            penname_to_name[name] = penname_list[k]
+        # print(penname_to_name)
         k += 1
-    with open("assets/penname_to_name.json", mode="w", encoding="utf-8") as fp:
+        # get_ids_dictで使うため，JSONに出力
+    with open("assets/json/penname_to_name.json", mode="w", encoding="utf-8") as fp:
         json.dump(penname_to_name, fp)
     return plates_list
 
@@ -111,32 +110,15 @@ def generate_qr(qr_link, sns, qr_name, output_path, qr_ver=8):
     return link
 
 
-def get_id_list(excel_path, sns):
-    _id_list = pd.read_excel(
-        excel_path, index_col=0, usecols=[2 if sns == "instagram" else 3]
-    ).index
-    # もし，QRのみ出力する場合，空白ますは不要となるので，その場合は，二つのelseを削除すれば良い
-    id_list = []
-    print("{}のIDリストを取得します".format(sns))
-    for i in _id_list:
-        # nanはfloat64型なのでnanの判定はこうする．i=="nan"ではだめ．
-        if type(i) != float:
-            id_list.append([i, sns])
-        else:
-            # 一つも説明文がない場合
-            id_list.append(["", sns])
-    print(id_list)
-    return id_list
-
-
 def get_ids_dict(excel_path):
-    # 人ごとにまとめるver
-    _name_list = pd.read_excel(excel_path, index_col=0, usecols=[0]).index
-    _instagram_list = pd.read_excel(excel_path, index_col=0, usecols=[2]).index
-    _twitter_list = pd.read_excel(excel_path, index_col=0, usecols=[3]).index
-    id_dict = {}
+    # 人ごとにsnsをまとめるver
+    df = pd.read_excel(excel_path)
+    _name_list = df["お名前"]
+    _instagram_list = df["Instagramのアカウント"]
+    _twitter_list = df["Xのアカウント"]
+    ids_dict = {}
     length = len(_name_list)
-    with open("assets/penname_to_name.json", mode="r", encoding="utf-8") as fp:
+    with open("assets/json/penname_to_name.json", mode="r", encoding="utf-8") as fp:
         penname_to_name_dict = json.load(fp)
         for i in range(length):
             penname = penname_to_name_dict[_name_list[i]]
@@ -145,15 +127,31 @@ def get_ids_dict(excel_path):
                 _id_list.append([_instagram_list[i], "instagram"])
             if type(_twitter_list[i]) != float:
                 _id_list.append([_twitter_list[i], "twitter"])
-            id_dict[penname] = _id_list
-    print(id_dict)
-    with open("assets/penname_to_sns.json", mode="w", encoding="utf-8") as fp:
-        json.dump(id_dict, fp)
-    return id_dict
+            ids_dict[penname] = _id_list
+    # 他のところ（QR）で使うため，一度JSONに変換する．
+    with open("assets/json/penname_to_sns.json", mode="w", encoding="utf-8") as fp:
+        json.dump(ids_dict, fp)
+    return ids_dict
+
+
+def get_permission_dict(excel_path):
+    df = pd.read_excel(excel_path)
+    penname_list = df["ペンネーム"]
+    _permission_list = df["リコシャのHPやSNSに載せて良いか"]
+    permission_dict = {}
+    for i, penname in enumerate(penname_list):
+        permission_dict[penname] = _permission_list[i]
+    return permission_dict
 
 
 if __name__ == "__main__":
-    get_ids_dict(
-        "/Users/masataka/Coding/Pythons/Licosha/Display/assets/リコシャ　2022早稲田祭展　写真収集フォーム.xlsx",
+    # get_ids_dict(
+    #     "/Users/masataka/Coding/Pythons/Licosha/Display/assets/excel/リコシャ　2023早稲田祭展　写真収集フォーム .xlsx",
+    # )
+    # get_plates_list(
+    #     "/Users/masataka/Coding/Pythons/Licosha/Display/assets/excel/リコシャ　2023早稲田祭展　写真収集フォーム .xlsx",
+    # )
+    #     generate_qr(qr_link="aa",sns="instagram", qr_name="test.png")
+    get_permission_dict(
+        "/Users/masataka/Coding/Pythons/Licosha/Display/assets/excel/リコシャ　2023早稲田祭展　写真収集フォーム .xlsx"
     )
-#     generate_qr(qr_link="aa",sns="instagram", qr_name="test.png")

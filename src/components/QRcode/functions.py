@@ -30,10 +30,10 @@ def generate_qr(qr_link, sns, qr_name, output_path, qr_ver=8):
     link = QRGen(qr_link, logo=img, qr="colored blue", version=qr_ver)
 
     if system == "Darwin":
-        link.save("{}/QRcode/{}".format(output_path, qr_name))
-        print("{}/QRcode/{}".format(output_path, qr_name))
+        link.save(f"{output_path}/QRcode/{qr_name}")
+        print(f"{output_path}/QRcode/{qr_name}")
     else:
-        link.save("{}\\QRcode\\{}".format(output_path, qr_name))
+        link.save(f"{output_path}\\QRcode\\{qr_name}")
 
     return link
 

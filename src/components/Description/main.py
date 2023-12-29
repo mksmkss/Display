@@ -31,9 +31,9 @@ system = platform.system()
 def generate_description_pdf(excel_path, output_path, main_path):
     # わざわざsys.argv使っているのは、pyinstallerでexe化した時のエラーを回避するため
     if system == "Darwin":
-        font_path = f"{main_path}/assets/YUMIN.TTF"
+        font_path = f"{main_path}/assets/ttf/YUMIN.TTF"
     else:
-        font_path = f"{main_path}\\assets\\MeiryoUI-03.ttf"
+        font_path = f"{main_path}\\assets\\ttf\\MeiryoUI-03.ttf"
     pdfmetrics.registerFont(TTFont("usefont", font_path))
 
     _data_list = get_description_list(excel_path)
@@ -42,13 +42,11 @@ def generate_description_pdf(excel_path, output_path, main_path):
 
     isEnd = False
     for i in range(page_len):
-
         # iがページ数，jが各ページにおけるカード番号
         j = 0
 
         # A4のpdfに必要なものを描画する
         while j < cards_num[0] * cards_num[1]:
-
             # A4のpdfを作成する
 
             if system == "Darwin":

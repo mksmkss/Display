@@ -7,9 +7,10 @@ def toArray(string):
 
 
 def get_plates_list(excel_path):
-    name_list = pd.read_excel(excel_path, index_col=0, usecols=[0]).index
-    title_list = pd.read_excel(excel_path, index_col=0, usecols=[8]).index
-    penname_list = pd.read_excel(excel_path, index_col=0, usecols=[10]).index
+    df = pd.read_excel(excel_path)
+    name_list = df["お名前"]
+    title_list = df["[写真の詳細] タイトル"]
+    penname_list = df["ペンネーム"]
 
     k = 0
 

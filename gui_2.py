@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import shutil
 import tkinter
 import platform
 from tkinter import filedialog
@@ -30,7 +31,7 @@ app.title("Plate Generator")
 
 main_path = os.path.dirname(sys.argv[0])
 
-
+# 設定ファイルを読み込む．過去のログ（pathなど）を保存しておくためのもの
 with open(f"{main_path}/settings.json", "r", encoding="utf-8") as _settings:
     global excel_path, outputFolder_path, year, exhibition_title
     dic = json.load(_settings)
@@ -49,6 +50,7 @@ icon = customtkinter.CTkImage(
 
 class PathEntry(customtkinter.CTkFrame):
     index = 0
+
     # CustomTkinterのフレームを継承したクラス
     def __init__(self, master, width, height, path_text, index, path_disp):
         # super()は親クラスのメソッドを呼び出す（使えるようにする）
@@ -154,7 +156,7 @@ for i in enumerate(label):
 def Process():
     toplevel = customtkinter.CTkToplevel()
     toplevel.geometry("300x200")
-    toplevel.transient(app) # これでToplevelウィンドウを親ウィンドウに関連付ける
+    toplevel.transient(app)  # これでToplevelウィンドウを親ウィンドウに関連付ける
     isFilled = True
     dic["year"] = year_disp.get()
     dic["exhibition_title"] = title_disp.get()
@@ -183,13 +185,16 @@ def Process():
         outputFolder_path = dic["outputFolder_path"]
         if system == "Darwin":
             for i in mkdir_list:
-                os.makedirs(f"{outputFolder_path}/{i}", exist_ok=True)
-
+                # はじめに，出力先のフォルダーの中身を削除する
+                shutil.rmtree(f"{outputFolder_path}/{i}", ignore_errors=True)
+                os.makedirs(f"{outputFolder_path}/{i}")
         elif system == "Windows":
             for i in mkdir_list:
-                os.makedirs(f"{outputFolder_path}\\{i}", exist_ok=True)
+                # はじめに，出力先のフォルダーの中身を削除する
+                shutil.rmtree(f"{outputFolder_path}\\{i}", ignore_errors=True)
+                os.makedirs(f"{outputFolder_path}\\{i}")
 
-        # メインの関数はIntegration,頑張ったので昔の関数もついでに出力しておく
+        # メインの関数はIntegration
         try:
             Integration.generate_caption_pdf(excel_path, outputFolder_path, main_path)
         except Exception as e:
@@ -199,17 +204,48 @@ def Process():
             Detail = customtkinter.CTkLabel(
                 master=toplevel, text="", font=("Arial", 12)
             )
+
+            # 改行を入れる
+            __e = str(e).split(" ")
+            _e = []
+            # /の前後で分割するが，/は残す
+            for j in enumerate(__e):
+                if "/" in j[1]:
+                    _text_list = j[1].split("/")
+                    text_list = [text + "/" for text in _text_list]
+                    _e.extend(text_list)
+                else:
+                    _e.append(f"{j[1]} ")
+            print(_e)
+            e = []
+            long = 0
+            line = ""
+            for k in _e:
+                if (long + len(k)) <= 40:
+                    line += k
+                    long += len(k)
+                else:
+                    e.append(line)
+                    line = k
+                    long = len(k)
+            e.append(line)
+            e = "\n".join(e)
             Detail.configure(text=f"{e}")
             Detail.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
             toplevel.update()
             if str(e) == "'numpy.int64' object has no attribute 'split'":
                 Detail.configure(
-                    text="Excelの列番号がずれています\n列A:名前, 列I:作品名, 列J:説明文, 列K:ペンネーム\nとなっているか確認してください")
+                    text="Excelの列名がずれています\n「お名前」,「[写真の詳細] タイトル」,「[写真の詳細] 説明」,「ペンネーム」となっていることを確認してください"
+                )
                 Detail.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
                 toplevel.update()
-            fin = customtkinter.CTkButton(master=toplevel, text="終了する", command=app.destroy)
+            fin = customtkinter.CTkButton(
+                master=toplevel, text="終了する", command=app.destroy
+            )
             fin.place(relx=0.5, rely=0.8, anchor=tkinter.CENTER)
-             
+            # エラーが発生したら終了する
+            return 0
+        # 頑張ったので昔の関数もついでに出力しておく
         Tag.generate_tag_pdf(excel_path, outputFolder_path, main_path)
         QRcode.generate_qr_pdf(excel_path, outputFolder_path, main_path)
         Description.generate_description_pdf(excel_path, outputFolder_path, main_path)
