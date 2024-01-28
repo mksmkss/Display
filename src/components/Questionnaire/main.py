@@ -12,7 +12,7 @@ import platform
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import Paragraph
+from reportlab.platypus import Paragraph, Table, TableStyle
 from reportlab.lib.colors import HexColor
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfbase.ttfonts import TTFont
@@ -28,14 +28,17 @@ else:
 
 
 A4_mm = (210, 297)  # A4用紙のサイズをmmで指定(横、縦)
-title_pos = [0, 20]  # タイトルの位置をmmで指定(左、上),ただし，leftは後で計算するため，ここでは0
+title_pos = [0, 30]  # タイトルの位置をmmで指定(左、上),ただし，leftは後で計算するため，ここでは0
 margin_mm = (10, 0)  # 余白をmmで指定(左右、上下)
 title_size = 18  # タイトルのフォントサイズ
-default_size = 12  # 本文のフォントサイズ
+default_size = 10  # 本文のフォントサイズ
 
 
 margin = tuple((to_px(x) for x in margin_mm))  # 余白のサイズpx
-margin_title_intro = 12  # タイトルとはじめにの間の余白
+margin_title_intro = 20  # タイトルとはじめにの間の余白
+
+column_num = 20  # 一行に並べる0の数
+table_size = default_size * 2 + 2  # マークシートのサイズ
 
 
 system = platform.system()
@@ -86,9 +89,11 @@ def generate_questionnaire_pdf(excel_path, output_path, main_path, exhibition_ti
     intro_words = [
         "本日は早稲田大学リコシャ写真部の写真展にお越しいただきありがとうございます。写真展をご覧くださった方に、アンケートの",
         "ご記入をお願いしております。いただいた意見は、今後の写真展の改善に役立てさせていただきます。よろしくお願いいたします。",
+        "なお，本アンケートは機械にて読み取りを行いますので，必ず黒色のボールペンで塗りつぶしてください。",
     ]
+
     for i, j in enumerate(intro_words):
-        page.setFont("usefont", default_size - 2)
+        page.setFont("usefont", default_size)
         page.drawString(
             to_px(margin[0] - 10),
             to_px(A4_mm[1] - title_pos[1] - margin_title_intro - 8 * i),
@@ -98,47 +103,78 @@ def generate_questionnaire_pdf(excel_path, output_path, main_path, exhibition_ti
     # 現在のカードの位置を記録する変数
     pos_y = A4_mm[1] - title_pos[1] - margin_title_intro - 8 * len(intro_words)
 
+    print(pos_y)
     _plates_list = get_plates_list(excel_path)
     plate_len = len(_plates_list)
 
-    # _plates_listの長さに応じて，縦横の枚数を変更する
-    cards_num = (2, plate_len // 2 + 1)
-    if plate_len > 50:
-        cards_num = (3, plate_len // 3 + 1)
-    if plate_len > 100:
-        cards_num = (4, plate_len // 4 + 1)
-
-    print(cards_num)
-
-    card = (
-        (A4[0] - margin[0] * 2) / cards_num[0],
-        (A4[1] * 13 / 20) / cards_num[1],
-    )  # カードのサイズをpxで指定(横、縦)
-
-    default_pos = [margin[0], to_px(pos_y)]  # マークシートを書き始める左上の座標をpxで指定(x,y)
-    pos = default_pos.copy()
-    print(plate_len)
-    for i in range(plate_len):
-        plate_text = _plates_list[i]
-        # 文字数の最大値は，カードの横幅を文字の幅で割ったもの
-        max_char_num = math.floor(card[0] / stringWidth("あ", "usefont", default_size))
-        # 文字数がmax_char_numを超えたら，省略する
-        if len(plate_text[0]) > max_char_num:
-            plate_text[0] = plate_text[0][:max_char_num] + "..."
-        # マークする部分の描写
+    # 説明
+    expla_words = ["1.", "気に行った作品の作品番号を塗りつぶしてください。"]
+    for i, j in enumerate(expla_words):
         page.setFont("usefont", default_size)
         page.drawString(
-            pos[0] + to_px(5),
-            pos[1] - to_px(5),
-            f"0 {plate_text[0]}",
+            to_px(margin[0] - 10),
+            to_px(pos_y - margin_title_intro - 8 * i),
+            expla_words[i],
         )
 
-        # 以下の処理はカードの位置を設定する処理
-        pos[1] -= card[1]
-        # iがmod(cards_num[1])==cards_num[1]-1の時，つまり，カードの縦の枚数に達した時
-        if i % cards_num[1] == cards_num[1] - 1:
-            pos[1] = default_pos[1]
-            pos[0] += card[0]
+    # 現在のカードの位置を記録する変数
+    pos_y -= 8 * len(expla_words) + margin_title_intro
+
+    # 0をcolumn_num個ずつならべるようなリストを作成，行数はlen(_plates_list)//column_num+1
+    table_data = [
+        [0 for i in range(column_num)] for j in range(plate_len // column_num)
+    ]
+    # # 一行目に1,2,3,...,column_numを入れる
+    # table_data.insert(0, [i for i in range(1, column_num + 1)])
+    if plate_len % column_num != 0:
+        table_data.append([0 for i in range(plate_len % column_num)])
+    for i, j in enumerate(table_data):
+        table = Table(
+            table_data,
+            colWidths=(table_size + 2),
+            rowHeights=(table_size + 2),
+        )
+        table.setStyle(
+            TableStyle(
+                [
+                    ("FONT", (0, 0), (-1, -1), "usefont", table_size),
+                    ("INNERGRID", (0, 0), (-1, -1), 0.25, HexColor("#000000")),
+                    ("BOX", (0, 0), (-1, -1), 0.25, HexColor("#000000")),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ]
+            )
+        )
+        # wrapOnは，テーブルを描写するために必要なサイズを計算する関数.ややこしいのが，wrapOnの引数はpxで指定する必要があることと，wrapOnは，テーブルの左下の座標を指定する関数であること
+        table.wrapOn(
+            page,
+            (A4[0] - (table_size + 2) * 20) / 2,
+            to_px(pos_y)
+            - (table_size + 2) * len(table_data)
+            - to_px(margin_title_intro / 2),
+        )
+        # drawOnは，wrapOnで計算したサイズを元に，テーブルを描写する関数. y座標はーを加えると下に移動する．pos_yは，はじめにA4[1]からひいいていることに注意
+        table.drawOn(
+            page,
+            (A4[0] - (table_size + 2) * 20) / 2,
+            to_px(pos_y)
+            - (table_size + 2) * len(table_data)
+            - to_px(margin_title_intro / 2),
+        )
+        # # マークする部分の描写
+        # page.setFont("usefont", default_size)
+        # page.drawString(
+        #     pos[0] + to_px(5),
+        #     pos[1] - to_px(5),
+        #     f"0 {plate_text[0]}",
+        # )
+
+        # # 以下の処理はカードの位置を設定する処理
+        # pos[1] -= card[1]
+        # # iがmod(cards_num[1])==cards_num[1]-1の時，つまり，カードの縦の枚数に達した時
+        # if i % cards_num[1] == cards_num[1] - 1:
+        #     pos[1] = default_pos[1]
+        #     pos[0] += card[0]
 
     page.save()
 

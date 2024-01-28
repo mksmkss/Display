@@ -49,7 +49,7 @@ def textParagraph(c, text, x, y):
     p.drawOn(c, x, y, mm)
 
 
-def generate_questionnaire_pdf(excel_path, output_path, main_path, exhibition_title):
+def generate_worklist_pdf(excel_path, output_path, main_path, _exhibition_title):
     """
     左下の座標が(0,0)の座標系で考える．この時，13/20にマークシートを配置する．
     """
@@ -61,81 +61,132 @@ def generate_questionnaire_pdf(excel_path, output_path, main_path, exhibition_ti
     pdfmetrics.registerFont(cidfonts.UnicodeCIDFont("HeiseiMin-W3"))
     pdfmetrics.registerFont(TTFont("usefont", font_path))
 
-    if system == "Darwin":
-        file_name = (
-            f"{output_path}/PieceList PDF/piecelist_{exhibition_title}.pdf"  # 保存するファイル名
-        )
-    else:
-        file_name = f"{output_path}\\PieceList PDF\\piecelist_{exhibition_title}.pdf"  # 保存するファイル名
-
-    # A4のキャンバスを作成
-    page = canvas.Canvas(file_name, pagesize=A4)
-
-    exhibition_title = f"{exhibition_title} 作品リスト"
-    # stringWidthは文字列の幅を返す関数.単位はpx
-    exhi_title_width = stringWidth(exhibition_title, "usefont", title_size)
-    title_pos[0] = (A4[0] - exhi_title_width) / 2
-
-    # titleの描画
-    page.setFont("usefont", title_size)
-    page.drawString(
-        title_pos[0],
-        to_px(A4_mm[1] - title_pos[1]),
-        exhibition_title,
-    )
-
-    # 現在のカードの位置を記録する変数
-    pos_y = A4_mm[1] - title_pos[1] - margin_title_worklist
+    # タイトルリストを取得
     _plates_list = get_plates_list(excel_path)
-
     plate_len = len(_plates_list)
+    print(_plates_list)
+
+    # 人数の取得. setで重複を削除している
+    people_num = len(set([x[1] for x in _plates_list]))
+
+    page_len = 1
 
     # _plates_listの長さに応じて，縦横の枚数を変更する
-    cards_num = (2, plate_len // 2 + 1)
-    if plate_len > 50:
-        cards_num = (3, plate_len // 3 + 1)
-    if plate_len > 100:
-        cards_num = (4, plate_len // 4 + 1)
+    cards_num = (2, (plate_len + people_num) // 2 + 1)
+    if plate_len + people_num > 50:
+        cards_num = (3, (plate_len + people_num) // 3 + 1)
+    if plate_len + people_num > 100:
+        cards_num = (4, (plate_len + people_num) // 4 + 1)
+    if plate_len + people_num > 150:
+        cards_num = (6, (plate_len + people_num) // 6 + 1)
+        page_len = 2
 
-    print(cards_num)
+    print(cards_num, plate_len, people_num)
 
+    # 2ページに分ける場合，1ページに書かれる列は3列になる
     card = (
-        (A4[0] - margin[0] * 2) / cards_num[0],
+        (A4[0] - margin[0] * 2) / cards_num[0] * page_len,
         (A4[1] * 17 / 20) / cards_num[1],
     )  # カードのサイズをpxで指定(横、縦)
 
-    default_pos = [margin[0], to_px(pos_y)]  # マークシートを書き始める左上の座標をpxで指定(x,y)
-    pos = default_pos.copy()
-    print(plate_len)
-    for i in range(plate_len):
-        # 数字の幅
-        num_width = stringWidth(f"({i+1})", "HeiseiMin-W3", 15)
-        plate_text = _plates_list[i]
-        # 文字数の最大値は，カードの横幅を文字の幅で割ったもの
-        max_char_num = math.floor(card[0] / stringWidth("あ", "usefont", default_size))
-        # 文字数がmax_char_numを超えたら，省略する
-        if len(plate_text[0]) > max_char_num:
-            plate_text[0] = plate_text[0][:max_char_num] + "..."
-        # マークする部分の描写
-        page.setFont("usefont", default_size)
+    for i in range(page_len):
+        if system == "Darwin":
+            file_name = f"{output_path}/PieceList PDF/piecelist_{_exhibition_title}_{i}.pdf"  # 保存するファイル名
+        else:
+            file_name = f"{output_path}\\PieceList PDF\\piecelist_{_exhibition_title}_{i}.pdf"  # 保存するファイル名
+
+        # A4のキャンバスを作成
+        page = canvas.Canvas(file_name, pagesize=A4)
+
+        exhibition_title = f"{_exhibition_title} 作品リスト"
+        # stringWidthは文字列の幅を返す関数.単位はpx
+        exhi_title_width = stringWidth(exhibition_title, "usefont", title_size)
+        title_pos[0] = (A4[0] - exhi_title_width) / 2
+
+        # titleの描画
+        page.setFont("usefont", title_size)
         page.drawString(
-            pos[0] - num_width / 2 + to_px(5),
-            pos[1] - to_px(5),
-            f"{i+1} {plate_text[0]}",
+            title_pos[0],
+            to_px(A4_mm[1] - title_pos[1]),
+            exhibition_title,
         )
 
-        # 以下の処理はカードの位置を設定する処理
-        pos[1] -= card[1]
-        # iがmod(cards_num[1])==cards_num[1]-1の時，つまり，カードの縦の枚数に達した時
-        if i % cards_num[1] == cards_num[1] - 1:
-            pos[1] = default_pos[1]
-            pos[0] += card[0]
+        # 現在のカードの位置を記録する変数
+        pos_y = A4_mm[1] - title_pos[1] - margin_title_worklist
 
-    page.save()
+        default_pos = [margin[0], to_px(pos_y)]  # マークシートを書き始める左上の座標をpxで指定(x,y)
+        pos = default_pos.copy()
+
+        penname = ""
+        pre_penname = ""
+
+        # 記述済みのカードの枚数
+        drew_num = 0
+        # 現在の列数
+        column_num = 0
+        for j in range(plate_len):
+            # 数字の幅
+            num_width = stringWidth(f"({j+1})", "HeiseiMin-W3", 15)
+
+            plate_text = _plates_list[j][0]
+            penname = _plates_list[j][1]
+            # 文字数の最大値は，カードの横幅を文字の幅で割ったもの
+            max_char_num = math.floor(
+                card[0] / stringWidth("あ", "usefont", default_size)
+            )
+
+            # pennameを比較して，違うなら描写する
+            if penname != pre_penname:
+                page.setFont("usefont", default_size)
+                page.drawString(
+                    pos[0] - to_px(2),
+                    pos[1] - to_px(5),
+                    f"{penname}",
+                )
+                pre_penname = penname
+                pos[1] -= card[1] - to_px(2)
+                drew_num += 1
+
+                # jがmod(cards_num[1])==cards_num[1]-1の時，つまり，カードの縦の枚数に達した時
+                if drew_num % cards_num[1] == cards_num[1] - 1:
+                    pos[1] = default_pos[1]
+                    pos[0] += card[0]
+                    drew_num = 0
+                    column_num += 1
+                    continue
+
+            # 文字数がmax_char_numを超えたら，省略する
+            if len(plate_text) > max_char_num:
+                plate_text = plate_text[:max_char_num] + "..."
+            # マークする部分の描写
+            page.setFont("usefont", default_size)
+            page.drawString(
+                pos[0] - num_width / 2 + to_px(5),
+                pos[1] - to_px(5),
+                f"{j+1} {plate_text}",
+            )
+            drew_num += 1
+
+            # 以下の処理はカードの位置を設定する処理
+            pos[1] -= card[1]
+            # iがmod(cards_num[1])==cards_num[1]-1の時，つまり，カードの縦の枚数に達した時
+            if drew_num % cards_num[1] == cards_num[1] - 1:
+                pos[1] = default_pos[1]
+                pos[0] += card[0]
+                drew_num = 0
+                column_num += 1
+            # ページの右端に達した時
+            if column_num == cards_num[0] or j == plate_len - 1:
+                pos[0] = default_pos[0]
+                pos[1] = default_pos[1]
+                column_num = 0
+                break
+
+        page.save()
 
 
 if __name__ == "__main__":
-    generate_questionnaire_pdf(
+    generate_worklist_pdf(
         "/Users/masataka/Coding/Pythons/Licosha/Display/assets/excel/リコシャ　2023早稲田祭展　写真収集フォーム .xlsx",
         "/Users/masataka/Desktop/plate",
         "/Users/masataka/Coding/Pythons/Licosha/Display",

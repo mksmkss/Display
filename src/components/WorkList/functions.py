@@ -46,8 +46,8 @@ def get_plates_list(excel_path):
         # print(penname_to_name)
         k += 1
         # get_ids_dictで使うため，JSONに出力
-    with open("assets/json/penname_to_name.json", mode="w", encoding="utf-8") as fp:
-        json.dump(penname_to_name, fp)
+    # with open("assets/json/penname_to_name.json", mode="w", encoding="utf-8") as fp:
+    #     json.dump(penname_to_name, fp)
     return plates_list
 
 
