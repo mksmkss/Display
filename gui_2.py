@@ -49,6 +49,12 @@ icon = customtkinter.CTkImage(
 
 
 class PathEntry(customtkinter.CTkFrame):
+    """
+    わざわざクラスを作った理由
+    1．ファイルを取得するという共通したタスクを繰り返し文で書きたかったため
+    2．単純に繰り返すと，一つのボタンの操作で全てのパスが動いてしまうため，それを防ぐため（区別されなかった）
+    """
+
     index = 0
 
     # CustomTkinterのフレームを継承したクラス
@@ -158,21 +164,28 @@ def Process():
     toplevel.geometry("300x200")
     toplevel.transient(app)  # これでToplevelウィンドウを親ウィンドウに関連付ける
     isFilled = True
+
+    # ここで入力された値を次回アプリが起動された時に自動表示されるようにjsonファイルに保存する
     dic["year"] = year_disp.get()
     dic["exhibition_title"] = title_disp.get()
     print(dic)
     with open(f"{main_path}/settings.json", "w", encoding="utf-8") as f:
         json.dump(dic, f, ensure_ascii=False, indent=4)
+
+    # すべての項目が入力されているか確認する
     for i in range(len(dic)):
         if list(dic.values())[i] == "":
             isFilled = False
     ProcessLookupError = customtkinter.CTkLabel(
         master=toplevel, text="", font=("Arial", 16, "bold")
     )
+
     if isFilled == True:
         toplevel.title("Processing...")
         ProcessLookupError.configure(text="処理中です...")
+        # anchor=tkinter.CENTERで中央に表示する
         ProcessLookupError.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
+        # 画面を更新する
         toplevel.update()
         mkdir_list = [
             "QRcode",
@@ -181,6 +194,8 @@ def Process():
             "Description PDF",
             "Caption PDF",
         ]
+
+        # 設定ファイルを読み込む
         excel_path = dic["excel_path"]
         outputFolder_path = dic["outputFolder_path"]
         if system == "Darwin":
@@ -205,10 +220,10 @@ def Process():
                 master=toplevel, text="", font=("Arial", 12)
             )
 
-            # 改行を入れる
+            # エラーの内容を表示する時に，見やすくするために改行を入れる
             __e = str(e).split(" ")
             _e = []
-            # /の前後で分割するが，/は残す
+            # /の前後で分割するが，/は残す．pathが入っているときに見にくくなるのを防ぐため
             for j in enumerate(__e):
                 if "/" in j[1]:
                     _text_list = j[1].split("/")
@@ -245,6 +260,7 @@ def Process():
             fin.place(relx=0.5, rely=0.8, anchor=tkinter.CENTER)
             # エラーが発生したら終了する
             return 0
+
         # 頑張ったので昔の関数もついでに出力しておく
         Tag.generate_tag_pdf(excel_path, outputFolder_path, main_path)
         QRcode.generate_qr_pdf(excel_path, outputFolder_path, main_path)
@@ -254,6 +270,8 @@ def Process():
         ProcessLookupError.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
         fin = customtkinter.CTkButton(master=toplevel, text="終了する", command=app.destroy)
         fin.place(relx=0.5, rely=0.8, anchor=tkinter.CENTER)
+
+        # 一枚ずつ保存されたPDFを結合する
         year = year_disp.get()
         title = title_disp.get()
         file_name = f"{year}_{title}.pdf"

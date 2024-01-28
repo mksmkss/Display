@@ -144,6 +144,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
 
                     # titleは複数行を考慮しない
                     page.setFont("HeiseiMin-W3", title_size)
+                    # stringWidthは文字列の幅を取得する関数.単位はpx
                     title_width_list.append(
                         round(page.stringWidth(title, "HeiseiMin-W3", title_size))
                     )
@@ -265,6 +266,6 @@ def generate_caption_pdf(excel_path, output_path, main_path):
 if __name__ == "__main__":
     generate_caption_pdf(
         "/Users/masataka/Coding/Pythons/Licosha/Display/assets/excel/リコシャ　2023早稲田祭展　写真収集フォーム .xlsx",
-        "/Users/masataka/Desktop/plate/Caption PDF",
+        "/Users/masataka/Desktop/plate",
         "/Users/masataka/Coding/Pythons/Licosha/Display",
     )
