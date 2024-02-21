@@ -2,13 +2,14 @@
 Integrationのこのファイルが一番大事
 """
 
-
+import os
 import math
 import json
 import budoux
 import textwrap
 import platform
 
+from PIL import Image
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -81,7 +82,12 @@ def generate_caption_pdf(excel_path, output_path, main_path):
             if system == "Darwin":
                 file_name = f"{output_path}/Caption PDF/caption_{i}.pdf"
             else:
-                file_name = f"{output_path}\\Caption PDF\\caption_{i}.pdf"
+                try:    
+                    os.makedirs(f"{output_path}\\Caption PDF\\each PDF", exist_ok=True)
+                except:
+                    print("Error", f"{output_path}\\Caption PDF\\each PDF")
+                    pass
+                file_name = f"{output_path}\\Caption PDF\\each PDF\\caption_{i}.pdf"
             page = canvas.Canvas(file_name, pagesize=A4)
 
             # 線の太さを指定

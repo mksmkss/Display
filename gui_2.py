@@ -199,11 +199,19 @@ def Process():
         excel_path = dic["excel_path"]
         outputFolder_path = dic["outputFolder_path"]
         if system == "Darwin":
+            # 大元のフォルダーを作成する
+            os.makedirs(f"{outputFolder_path}/{dic['year']} {dic['exhibition_title']}")
+            # 新しい変数を作るのがめんどくさいので...
+            outputFolder_path = f"{outputFolder_path}/{dic['year']} {dic['exhibition_title']}"
             for i in mkdir_list:
                 # はじめに，出力先のフォルダーの中身を削除する
                 shutil.rmtree(f"{outputFolder_path}/{i}", ignore_errors=True)
                 os.makedirs(f"{outputFolder_path}/{i}")
         elif system == "Windows":
+            # 大元のフォルダーを作成する
+            os.makedirs(f"{outputFolder_path}\\{dic['year']} {dic['exhibition_title']}")
+            # 新しい変数を作るのがめんどくさいので...
+            outputFolder_path = f"{outputFolder_path}\\{dic['year']} {dic['exhibition_title']}"
             for i in mkdir_list:
                 # はじめに，出力先のフォルダーの中身を削除する
                 shutil.rmtree(f"{outputFolder_path}\\{i}", ignore_errors=True)

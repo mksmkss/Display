@@ -9,11 +9,11 @@ merger = PyPDF2.PdfMerger()
 
 
 def merge_pdfs(outputFolder, file_name):
-    pdf_list = sorted(glob.glob(f"{outputFolder}/*.pdf"))
+    pdf_list = sorted(glob.glob(f"{outputFolder}/each PDF/*.pdf"))
     for i in pdf_list:
         merger.append(i)
         print(i)
-        os.remove(i)
+        # os.remove(i)
     merger.write(f"{outputFolder}/{file_name}")
     merger.close()
     # 生成したPDFを開く
