@@ -7,9 +7,13 @@ import subprocess
 
 merger = PyPDF2.PdfMerger()
 
+system = platform.system()
 
 def merge_pdfs(outputFolder, file_name):
-    pdf_list = sorted(glob.glob(f"{outputFolder}/each PDF/*.pdf"))
+    if system == "Windows":
+        pdf_list = sorted(glob.glob(f"{outputFolder}/each PDF/*.pdf"))
+    elif system == "Darwin":
+        pdf_list = sorted(glob.glob(f"{outputFolder}/*.pdf"))
     for i in pdf_list:
         merger.append(i)
         print(i)
@@ -25,4 +29,4 @@ def merge_pdfs(outputFolder, file_name):
 
 
 if __name__ == "__main__":
-    merge_pdfs("/Users/masataka/Desktop/Plate/Caption PDF", "2022")
+    merge_pdfs("/Users/masataka/Desktop/2024 10℃afe/Caption PDF", "2024_10°cafe")

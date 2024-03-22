@@ -4,10 +4,9 @@ Integrationのこのファイルが一番大事
 
 import os
 import math
-import json
 import budoux
-import textwrap
 import platform
+import numpy as np
 
 from PIL import Image
 from reportlab.lib.units import mm
@@ -206,6 +205,9 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                     for l in enumerate(sns_list):
                         id = l[1][0]
                         sns = l[1][1]
+                        print(id,type(id))
+                        if isinstance(id, float):
+                            continue
                         # まず，QRコードを生成
                         if sns == "instagram":
                             generate_qr(
