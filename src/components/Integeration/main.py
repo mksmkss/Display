@@ -42,6 +42,9 @@ description_size = 12
 
 rect_height = 14
 
+notaking_width = 8
+data_matrix_width = 10
+
 system = platform.system()
 
 
@@ -66,9 +69,10 @@ def generate_caption_pdf(excel_path, output_path, main_path):
     _description_list = get_description_list(excel_path)
     _ids_dict = get_ids_dict(excel_path)
     _permission_dict = get_permission_dict(excel_path)
+    _uuid_list = get_uuid_list(excel_path)
     page_len = math.ceil(len(_plates_list) / cards_num[0] * cards_num[1])
 
-    print(page_len)
+    print(f"page_len: {page_len}")
 
     isEnd = False
     for i in range(page_len):
@@ -81,7 +85,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
             if system == "Darwin":
                 file_name = f"{output_path}/Caption PDF/caption_{i}.pdf"
             else:
-                try:    
+                try:
                     os.makedirs(f"{output_path}\\Caption PDF\\each PDF", exist_ok=True)
                 except:
                     print("Error", f"{output_path}\\Caption PDF\\each PDF")
@@ -104,7 +108,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                     # 図形（長方形、直線）とテキストの描画
                     page.rect(pos[0], pos[1], card[0], card[1], fill=False)
 
-                    # 下の黒いところの描画
+                    # カードの下の黒いところの描画
                     page.setFillColor(HexColor("#2c2c2e"))
                     page.rect(pos[0], pos[1], card[0], to_px(rect_height), fill=1)
 
@@ -115,9 +119,15 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                         print("First loop is done!")
                         break
 
+                    # j+10*i番目のカードの情報を取得
                     title = _plates_list[j + 10 * i][0]
                     penname = _plates_list[j + 10 * i][1]
                     description = _description_list[j + 10 * i]
+                    each_uuid = _uuid_list[j + 10 * i]
+
+                    print(
+                        f"title: {title}, penname: {penname}, description: {description}, each_uuid: {each_uuid}"
+                    )
 
                     # googleの日本語parserを使う.これにより自然な改行ができるようになった
                     parser = budoux.load_default_japanese_parser()
@@ -135,7 +145,6 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                             line = k
                             long = len(k)
                     description_list.append(line)
-                    print("description_list", description_list)
 
                     # それぞれのtitleの位置を取得
                     title_width_list = []
@@ -143,7 +152,6 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                     title_y = []
 
                     # それぞれのdescriptionの位置を取得,複数行になることを考慮
-                    # description_width_list = []
                     description_x = []
                     description_y = []
 
@@ -156,6 +164,8 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                     # 座標の基準は文字の左下
                     title_x.append(pos[0] + card[0] * 0.08)
                     title_y.append(pos[1] + card[1] * 0.8)
+
+                    print(f"title_x: {title_x}, title_y: {title_y}")
 
                     # descriptionは複数行を考慮
                     for k in enumerate(description_list):
@@ -201,11 +211,11 @@ def generate_caption_pdf(excel_path, output_path, main_path):
 
                     penname_to_sns_dict = _ids_dict
                     sns_list = penname_to_sns_dict[penname]
-                    print(f"{sns_list}, {penname}")
+                    print(f"sns_list: {sns_list}")
+                    # snsのQRコードの描画,xやinstagramのQRコードの描画
                     for l in enumerate(sns_list):
                         id = l[1][0]
                         sns = l[1][1]
-                        print(id,type(id))
                         if isinstance(id, float):
                             continue
                         # まず，QRコードを生成
@@ -237,15 +247,49 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                             height=to_px(rect_height - 2),
                         )
 
+                    print(f"each_uuid: {each_uuid}")
+                    # DataMatrixの生成
+                    generate_data_matrix(
+                        each_uuid, f"{output_path}/Data Matrix/{each_uuid}.png"
+                    )
+
+                    # DataMatrixの描画
+                    if system == "Darwin":
+                        image = Image.open(f"{output_path}/Data Matrix/{each_uuid}.png")
+                    else:
+                        image = Image.open(
+                            f"{output_path}\\Data Matrix\\{each_uuid}.png"
+                        )
+                    page.drawInlineImage(
+                        image,
+                        pos[0] + card[0] - card[0] * 0.08 - to_px(data_matrix_width),
+                        pos[1] + card[1] * 0.75,
+                        width=to_px(data_matrix_width),
+                        height=to_px(data_matrix_width),
+                    )
+
                     # No Takingの描画
                     if _permission_dict[penname] == "No":
-                        notaking_width = to_px(10)
+
+                        if system == "Darwin":
+                            image = Image.open(
+                                f"{main_path}/assets/img/icons8-nocamera-100.png"
+                            )
+                        else:
+                            image = Image.open(
+                                f"{main_path}\\assets\\img\\icons8-nocamera-100.png"
+                            )
                         page.drawInlineImage(
-                            Image.open("assets/img/icons8-nocamera-100.png"),
-                            pos[0] + card[0] - card[0] * 0.08 - notaking_width,
+                            image,
+                            pos[0]
+                            + card[0]
+                            - card[0] * 0.08
+                            - to_px(notaking_width)
+                            - 4
+                            - to_px(data_matrix_width),
                             pos[1] + card[1] * 0.75,
-                            width=notaking_width,
-                            height=notaking_width,
+                            width=to_px(notaking_width),
+                            height=to_px(notaking_width),
                         )
 
                     j += 1

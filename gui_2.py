@@ -30,6 +30,7 @@ app.geometry(f"{main_width}x{main_height}")
 app.title("Plate Generator")
 
 main_path = os.path.dirname(sys.argv[0])
+print(main_path)
 
 # 設定ファイルを読み込む．過去のログ（pathなど）を保存しておくためのもの
 with open(f"{main_path}/settings.json", "r", encoding="utf-8") as _settings:
@@ -187,12 +188,14 @@ def Process():
         ProcessLookupError.place(relx=0.5, rely=0.4, anchor=tkinter.CENTER)
         # 画面を更新する
         toplevel.update()
+        # 出力先のフォルダーをまとめて作成する
         mkdir_list = [
             "QRcode",
             "Tag PDF",
             "QRcode PDF",
             "Description PDF",
             "Caption PDF",
+            "Data Matrix",
         ]
 
         # 設定ファイルを読み込む

@@ -1,8 +1,11 @@
 import pandas as pd
+import numpy as np
 import platform
 import json
 from os import system
 from PIL import Image
+import uuid
+import pylibdmtx.pylibdmtx as dmtx
 from reportlab.lib.pagesizes import A4
 
 if __name__ == "__main__":
@@ -39,7 +42,7 @@ def get_description_list(excel_path):
         """
         if type(i) != float:
             for j in toArray(i):
-                print(j, type(j) != float)
+                # print(j, type(j) != float)
                 if j != "":
                     description_list.append(j)
                 else:
@@ -48,38 +51,78 @@ def get_description_list(excel_path):
         else:
             # 一つも説明文がない場合
             description_list.append("")
-    print(description_list)
+    # print(description_list)
 
     return description_list
 
 
 def get_plates_list(excel_path):
     df = pd.read_excel(excel_path)
+
+    # uuidの列が存在しない場合は追加する
+    if "uuid" not in df.columns:
+        df["uuid"] = ""
+
     name_list = df["お名前"]
     title_list = df["[写真の詳細] タイトル"]
     penname_list = df["ペンネーム"]
 
     k = 0
-
-    # [title, penname]の集合体
     plates_list = []
     penname_to_name = {}
 
     while k < len(name_list):
-        # 1人何個作品出したか
         works_num = len(toArray(title_list[k]))
-        # 本名
         name = name_list[k]
+
+        # 既存のUUIDを取得
+        existing_uuids = df.loc[k, "uuid"] if pd.notna(df.loc[k, "uuid"]) else ""
+        existing_uuid_list = existing_uuids.split("|") if existing_uuids else []
+
+        # 必要な分だけ新しいUUIDを生成
+        new_uuid_count = works_num - len(existing_uuid_list)
+        new_uuids = [str(uuid.uuid4()) for _ in range(new_uuid_count)]
+
+        # 既存のUUIDと新しいUUIDを結合
+        uuid_list = existing_uuid_list + new_uuids
+
         for i in range(works_num):
             plates_list.append([toArray(title_list[k])[i], penname_list[k]])
-            # dictに追加
             penname_to_name[name] = penname_list[k]
-        # print(penname_to_name)
+
+        # 更新されたUUIDリストをDataFrameに設定
+        df.loc[k, "uuid"] = "|".join(
+            uuid_list[:works_num]
+        )  # works_numまでのUUIDのみを使用
+
         k += 1
-        # get_ids_dictで使うため，JSONに出力
+
     with open("assets/json/penname_to_name.json", mode="w", encoding="utf-8") as fp:
         json.dump(penname_to_name, fp)
+
+    # 変更を保存
+    df.to_excel(excel_path, index=False)
+    # print(plates_list)
     return plates_list
+
+
+def get_uuid_list(excel_path):
+    df = pd.read_excel(excel_path)
+    uuid_series = df["uuid"]
+
+    def process_uuid(uuid):
+        if pd.isna(uuid) or uuid == "":
+            return [""]
+        else:
+            return uuid.split("|")
+
+    # 各UUIDエントリを処理し、結果をリストのリストとして取得
+    uuid_nested_list = uuid_series.apply(process_uuid).tolist()
+
+    # ネストされたリストを平坦化
+    uuid_list = [uuid for sublist in uuid_nested_list for uuid in sublist]
+
+    return uuid_list
 
 
 def generate_qr(qr_link, sns, qr_name, output_path, qr_ver=8):
@@ -110,6 +153,42 @@ def generate_qr(qr_link, sns, qr_name, output_path, qr_ver=8):
     return link
 
 
+def generate_data_matrix(data, output_path, size=24):
+    """
+    文字列からデータマトリックスを生成し、画像として保存する
+
+    :param data: エンコードする文字列
+    :param size: データマトリックスのサイズ (デフォルト: 24)
+    :param output_path: 出力画像のパス
+    """
+
+    system = platform.system()
+    # データマトリックスのエンコード
+    encoded = dmtx.encode(data.encode("utf-8"), size=f"{size}x{size}")
+
+    # エンコードされたデータをPIL Imageに変換
+    pil_img = Image.frombytes("RGB", (encoded.width, encoded.height), encoded.pixels)
+
+    # グレースケールに変換
+    pil_img = pil_img.convert("L")
+
+    # NumPy配列に変換
+    img = np.array(pil_img)
+
+    # 画像の拡大（見やすくするため）
+    scale = 10
+    img = np.repeat(np.repeat(img, scale, axis=0), scale, axis=1)
+
+    # PILイメージに再変換
+    pil_img = Image.fromarray(img)
+
+    # 画像の保存
+    if system == "Darwin":
+        pil_img.save(output_path)
+    else:
+        pil_img.save(output_path.replace("/", "\\"))
+
+
 def get_ids_dict(excel_path):
     # 人ごとにsnsをまとめるver
     df = pd.read_excel(excel_path)
@@ -118,19 +197,28 @@ def get_ids_dict(excel_path):
     _twitter_list = df["Xのアカウント"]
     ids_dict = {}
     length = len(_name_list)
+
     with open("assets/json/penname_to_name.json", mode="r", encoding="utf-8") as fp:
         penname_to_name_dict = json.load(fp)
+
         for i in range(length):
             penname = penname_to_name_dict[_name_list[i]]
             _id_list = []
-            if type(_instagram_list[i]) != float:
+
+            # Instagramアカウントのチェック
+            if not pd.isna(_instagram_list[i]):
                 _id_list.append([_instagram_list[i], "instagram"])
-            if type(_twitter_list[i]) != float:
+
+            # Twitterアカウントのチェック
+            if not pd.isna(_twitter_list[i]):
                 _id_list.append([_twitter_list[i], "twitter"])
+
             ids_dict[penname] = _id_list
+
     # 他のところ（QR）で使うため，一度JSONに変換する．
     with open("assets/json/penname_to_sns.json", mode="w", encoding="utf-8") as fp:
-        json.dump(ids_dict, fp)
+        json.dump(ids_dict, fp, ensure_ascii=False, indent=2)
+
     return ids_dict
 
 
@@ -151,7 +239,11 @@ if __name__ == "__main__":
     # get_plates_list(
     #     "/Users/masataka/Coding/Pythons/Licosha/Display/assets/excel/リコシャ　2023早稲田祭展　写真収集フォーム .xlsx",
     # )
-    #     generate_qr(qr_link="aa",sns="instagram", qr_name="test.png")
-    get_permission_dict(
+    get_uuid_list(
         "/Users/masataka/Coding/Pythons/Licosha/Display/assets/excel/リコシャ　2023早稲田祭展　写真収集フォーム .xlsx"
     )
+    #     generate_qr(qr_link="aa",sns="instagram", qr_name="test.png")
+    # get_permission_dict(
+    #     "/Users/masataka/Coding/Pythons/Licosha/Display/assets/excel/リコシャ　2023早稲田祭展　写真収集フォーム .xlsx"
+    # )
+    # generate_data_matrix("test", output_path="test.png")
