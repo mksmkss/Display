@@ -6,7 +6,7 @@ import os
 import math
 import budoux
 import platform
-import numpy as np
+import textwrap
 
 from PIL import Image
 from reportlab.lib.units import mm
@@ -42,8 +42,8 @@ description_size = 12
 
 rect_height = 14
 
-notaking_width = 8
-data_matrix_width = 10
+notaking_width = 12
+data_matrix_width = 18
 
 system = platform.system()
 
@@ -146,6 +146,11 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                             long = len(k)
                     description_list.append(line)
 
+                    # description_list[0]==''の時は，英語の可能性が高いので，日本語のparserを使わない.
+                    if description_list[0] == "":
+                        # wrap(テキストデータ,文字数)
+                        description_list = textwrap.wrap(description, 40)
+
                     # それぞれのtitleの位置を取得
                     title_width_list = []
                     title_x = []
@@ -177,6 +182,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                             + (card[1] / 2)
                             + (description_size / 2) * (len(description_list) - 2)
                             - description_size * k[0]
+                            - 5
                         )
 
                     # pennameの位置を取得
@@ -248,22 +254,29 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                         )
 
                     print(f"each_uuid: {each_uuid}")
+                    # escapeを使って，文字列をエスケープ
+                    escaped_penname = penname.replace("/", "-")
+                    escaped_title = title.replace("/", "-")
+
                     # DataMatrixの生成
                     generate_data_matrix(
-                        each_uuid, f"{output_path}/Data Matrix/{each_uuid}.png"
+                        each_uuid,
+                        f"{output_path}/Data Matrix/{escaped_penname}_{escaped_title}.png",
                     )
 
                     # DataMatrixの描画
                     if system == "Darwin":
-                        image = Image.open(f"{output_path}/Data Matrix/{each_uuid}.png")
+                        image = Image.open(
+                            f"{output_path}/Data Matrix/{escaped_penname}_{escaped_title}.png"
+                        )
                     else:
                         image = Image.open(
-                            f"{output_path}\\Data Matrix\\{each_uuid}.png"
+                            f"{output_path}\\Data Matrix\\{escaped_penname}_{escaped_title}.png"
                         )
                     page.drawInlineImage(
                         image,
                         pos[0] + card[0] - card[0] * 0.08 - to_px(data_matrix_width),
-                        pos[1] + card[1] * 0.75,
+                        pos[1] + card[1] * 0.95 - to_px(data_matrix_width),
                         width=to_px(data_matrix_width),
                         height=to_px(data_matrix_width),
                     )
@@ -287,7 +300,7 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                             - to_px(notaking_width)
                             - 4
                             - to_px(data_matrix_width),
-                            pos[1] + card[1] * 0.75,
+                            pos[1] + card[1] * 0.95 - to_px(notaking_width),
                             width=to_px(notaking_width),
                             height=to_px(notaking_width),
                         )

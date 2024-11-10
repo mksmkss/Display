@@ -96,7 +96,7 @@ class PathEntry(customtkinter.CTkFrame):
                     filetypes=(
                         ("Excel", ".xlsx .xls"),
                         ("ExcelMacro .xlsm"),
-                    ),
+                    ),  # type: ignore
                 )
                 print(new_path)
                 new_path = new_path.replace("/", "\\")
@@ -169,7 +169,6 @@ def Process():
     # ここで入力された値を次回アプリが起動された時に自動表示されるようにjsonファイルに保存する
     dic["year"] = year_disp.get()
     dic["exhibition_title"] = title_disp.get()
-    print(dic)
     with open(f"{main_path}/settings.json", "w", encoding="utf-8") as f:
         json.dump(dic, f, ensure_ascii=False, indent=4)
 

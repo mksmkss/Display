@@ -179,8 +179,20 @@ def generate_data_matrix(data, output_path, size=24):
     scale = 10
     img = np.repeat(np.repeat(img, scale, axis=0), scale, axis=1)
 
+    # 白黒を#2c2c2eに変換
+    img = np.where(img == 0, 44, 255).astype(np.uint8)  # uint8型に明示的に変換
+
     # PILイメージに再変換
     pil_img = Image.fromarray(img)
+
+    # カラーモードをRGBに変換し、グレーを#2c2c2eに
+    pil_img = pil_img.convert("RGB")
+    pixels = pil_img.load()
+    width, height = pil_img.size
+    for x in range(width):
+        for y in range(height):
+            if pixels[x, y] == (44, 44, 44):  # 0x2cは10進数で44
+                pixels[x, y] = (44, 44, 46)  # #2c2c2e
 
     # 画像の保存
     if system == "Darwin":
@@ -225,7 +237,7 @@ def get_ids_dict(excel_path):
 def get_permission_dict(excel_path):
     df = pd.read_excel(excel_path)
     penname_list = df["ペンネーム"]
-    _permission_list = df["リコシャのHPやSNSに載せて良いか"]
+    _permission_list = df["来場者が撮影可能か"]
     permission_dict = {}
     for i, penname in enumerate(penname_list):
         permission_dict[penname] = _permission_list[i]
