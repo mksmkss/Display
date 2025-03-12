@@ -122,7 +122,7 @@ class QRGenerator:
         img = Image.new("RGBA", (20 + 10 * count, 20 + 10 * count), wallpaper)
         idraw = ImageDraw.Draw(img)
         width = 10 * (count // 3 + count % 3) - 4
-        logo = logo.resize((width, width), Image.ANTIALIAS)
+        logo = logo.resize((width, width), Image.LANCZOS)
         end = False
         for y in range(count):
             for x in range(count):

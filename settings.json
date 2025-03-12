@@ -1,6 +1,7 @@
 {
-    "excel_path": "/Users/masataka/Downloads/リコシャ 2024早稲田祭展 写真収集フォーム.xlsx",
+    "excel_path": "/Users/masataka/Downloads/2024 フジフィルム 写真展 v2.0.xlsx",
     "outputFolder_path": "/Users/masataka/Desktop/plate",
-    "year": "2",
-    "exhibition_title": "2"
+    "year": "2024",
+    "exhibition_title": "d",
+    "show_datamatrix": true
 }

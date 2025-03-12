@@ -56,7 +56,7 @@ def textParagraph(c, text, x, y):
     p.drawOn(c, x, y, mm)
 
 
-def generate_caption_pdf(excel_path, output_path, main_path):
+def generate_caption_pdf(excel_path, output_path, main_path, show_datamatrix=True):
     # わざわざsys.argv使っているのは、pyinstallerでexe化した時のエラーを回避するため
     if system == "Darwin":
         font_path = f"{main_path}/assets/ttf/MeiryoUI-03.ttf"
@@ -254,32 +254,37 @@ def generate_caption_pdf(excel_path, output_path, main_path):
                         )
 
                     print(f"each_uuid: {each_uuid}")
-                    # escapeを使って，文字列をエスケープ
-                    escaped_penname = penname.replace("/", "-")
-                    escaped_title = title.replace("/", "-")
+                    # DataMatrixの生成と描画
+                    if show_datamatrix:
+                        # escapeを使って，文字列をエスケープ
+                        escaped_penname = penname.replace("/", "-")
+                        escaped_title = title.replace("/", "-")
 
-                    # DataMatrixの生成
-                    generate_data_matrix(
-                        each_uuid,
-                        f"{output_path}/Data Matrix/{escaped_penname}_{escaped_title}.png",
-                    )
+                        # DataMatrixの生成
+                        generate_data_matrix(
+                            each_uuid,
+                            f"{output_path}/Data Matrix/{escaped_penname}_{escaped_title}.png",
+                        )
 
-                    # DataMatrixの描画
-                    if system == "Darwin":
-                        image = Image.open(
-                            f"{output_path}/Data Matrix/{escaped_penname}_{escaped_title}.png"
+                        # DataMatrixの描画
+                        if system == "Darwin":
+                            image = Image.open(
+                                f"{output_path}/Data Matrix/{escaped_penname}_{escaped_title}.png"
+                            )
+                        else:
+                            image = Image.open(
+                                f"{output_path}\\Data Matrix\\{escaped_penname}_{escaped_title}.png"
+                            )
+                        page.drawInlineImage(
+                            image,
+                            pos[0]
+                            + card[0]
+                            - card[0] * 0.08
+                            - to_px(data_matrix_width),
+                            pos[1] + card[1] * 0.95 - to_px(data_matrix_width),
+                            width=to_px(data_matrix_width),
+                            height=to_px(data_matrix_width),
                         )
-                    else:
-                        image = Image.open(
-                            f"{output_path}\\Data Matrix\\{escaped_penname}_{escaped_title}.png"
-                        )
-                    page.drawInlineImage(
-                        image,
-                        pos[0] + card[0] - card[0] * 0.08 - to_px(data_matrix_width),
-                        pos[1] + card[1] * 0.95 - to_px(data_matrix_width),
-                        width=to_px(data_matrix_width),
-                        height=to_px(data_matrix_width),
-                    )
 
                     # No Takingの描画
                     if _permission_dict[penname] == "No":

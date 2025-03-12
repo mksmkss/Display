@@ -34,12 +34,13 @@ print(main_path)
 
 # 設定ファイルを読み込む．過去のログ（pathなど）を保存しておくためのもの
 with open(f"{main_path}/settings.json", "r", encoding="utf-8") as _settings:
-    global excel_path, outputFolder_path, year, exhibition_title
+    global excel_path, outputFolder_path, year, exhibition_title, show_datamatrix
     dic = json.load(_settings)
     excel_path = dic["excel_path"]
     outputFolder_path = dic["outputFolder_path"]
     year = dic["year"]
     exhibition_title = dic["exhibition_title"]
+    show_datamatrix = dic.get("show_datamatrix", True)  # デフォルトはTrue
 
 
 icon = customtkinter.CTkImage(
@@ -169,6 +170,7 @@ def Process():
     # ここで入力された値を次回アプリが起動された時に自動表示されるようにjsonファイルに保存する
     dic["year"] = year_disp.get()
     dic["exhibition_title"] = title_disp.get()
+    dic["show_datamatrix"] = show_datamatrix_var.get()
     with open(f"{main_path}/settings.json", "w", encoding="utf-8") as f:
         json.dump(dic, f, ensure_ascii=False, indent=4)
 
@@ -231,7 +233,9 @@ def Process():
 
         # メインの関数はIntegration
         try:
-            Integration.generate_caption_pdf(excel_path, outputFolder_path, main_path)
+            Integration.generate_caption_pdf(
+                excel_path, outputFolder_path, main_path, show_datamatrix_var.get()
+            )
         except Exception as e:
             print(e)
             ProcessLookupError.configure(text="エラーが発生しました")
@@ -307,6 +311,17 @@ def Process():
         ProcessLookupError.place(relx=0.5, rely=0.5, anchor=tkinter.CENTER)
 
 
+# チェックボックスの作成
+show_datamatrix_var = customtkinter.BooleanVar(value=show_datamatrix)
+show_datamatrix_checkbox = customtkinter.CTkCheckBox(
+    master=app,
+    text="アンケート用のDataMatrixを表示する",
+    variable=show_datamatrix_var,
+)
+# チェックボックスの位置を左揃えにする
+show_datamatrix_checkbox.place(relx=0.05, rely=0.75, anchor=tkinter.W)
+
+
 button = customtkinter.CTkButton(
     master=app,
     text="Process",
@@ -314,5 +329,15 @@ button = customtkinter.CTkButton(
 )
 button.place(relx=0.5, rely=0.85, anchor=tkinter.CENTER)
 
+# バージョンと作者名の表示
+version_label = customtkinter.CTkLabel(
+    master=app, text="Version 3.0.0", font=("Arial", 10), text_color="gray"
+)
+version_label.place(relx=0.02, rely=0.98, anchor=tkinter.SW)
+
+author_label = customtkinter.CTkLabel(
+    master=app, text="Created by Masataka Suzuki", font=("Arial", 10), text_color="gray"
+)
+author_label.place(relx=0.98, rely=0.98, anchor=tkinter.SE)
 
 app.mainloop()
