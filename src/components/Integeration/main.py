@@ -37,6 +37,7 @@ margin = tuple((to_px(x) for x in margin_mm))  # 余白のサイズpx
 
 # 各パラメータの調整．ちなみにQRコードの大きさもrect_heightで自動調整される
 title_size = 16
+artist_size = 11  # 歌手名・著作者名のフォントサイズを追加
 penname_size = 13
 description_size = 12
 
@@ -122,11 +123,13 @@ def generate_caption_pdf(excel_path, output_path, main_path, show_datamatrix=Tru
                     # j+10*i番目のカードの情報を取得
                     title = _plates_list[j + 10 * i][0]
                     penname = _plates_list[j + 10 * i][1]
+                    artist = _plates_list[j + 10 * i][2]  # 歌手名・著作者名を取得
                     description = _description_list[j + 10 * i]
                     each_uuid = _uuid_list[j + 10 * i]
 
                     print(
-                        f"title: {title}, penname: {penname}, description: {description}, each_uuid: {each_uuid}"
+                        f"title: {title}, penname: {penname}, artist: {artist}, "
+                        f"description: {description}, each_uuid: {each_uuid}"
                     )
 
                     # googleの日本語parserを使う.これにより自然な改行ができるようになった
@@ -201,8 +204,20 @@ def generate_caption_pdf(excel_path, output_path, main_path, show_datamatrix=Tru
                     page.setFont("HeiseiMin-W3", title_size)
                     page.drawString(title_x[0], title_y[0], title)
 
+                    # 歌手名・著作者名の描画（タイトルの下）
+                    if artist:
+                        page.setFont("HeiseiMin-W3", artist_size)
+                        page.drawString(
+                            title_x[0],
+                            title_y[0] - artist_size - 2,  # タイトルの下に配置
+                            artist,
+                        )
+
                     # pennameの描画
-                    p_penname = f"""<font name="HeiseiMin-W3" color="rgb(237, 237, 235)" size={penname_size}>{penname}</font>"""
+                    p_penname = (
+                        f'<font name="HeiseiMin-W3" color="rgb(237, 237, 235)" '
+                        f"size={penname_size}>{penname}</font>"
+                    )
                     textParagraph(page, p_penname, title_x[1], title_y[1])
 
                     # descriptionの描画

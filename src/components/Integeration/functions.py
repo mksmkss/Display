@@ -31,7 +31,7 @@ def to_mm(px):
 
 
 def get_description_list(excel_path):
-    df = pd.read_excel(excel_path)
+    df = pd.read_excel(excel_path, dtype=str)
     _description_list = df["[写真の詳細] 説明"]
     # もし，説明文と題名等を分ける場合，空白ますは不要となるので，その場合は，二つのelseを削除すれば良い
     description_list = []
@@ -57,7 +57,7 @@ def get_description_list(excel_path):
 
 
 def get_plates_list(excel_path):
-    df = pd.read_excel(excel_path)
+    df = pd.read_excel(excel_path, dtype=str)
 
     # uuidの列が存在しない場合は追加する
     if "uuid" not in df.columns:
@@ -65,6 +65,7 @@ def get_plates_list(excel_path):
 
     name_list = df["お名前"]
     title_list = df["[写真の詳細] タイトル"]
+    artist_list = df["[写真の詳細] 歌手名・著作者名"]  # 新しい列を追加
     penname_list = df["ペンネーム"]
 
     k = 0
@@ -87,7 +88,10 @@ def get_plates_list(excel_path):
         uuid_list = existing_uuid_list + new_uuids
 
         for i in range(works_num):
-            plates_list.append([toArray(title_list[k])[i], penname_list[k]])
+            # タイトルと歌手名・著作者名を配列に追加
+            title = toArray(title_list[k])[i]
+            artist = toArray(artist_list[k])[i] if pd.notna(artist_list[k]) else ""
+            plates_list.append([title, penname_list[k], artist])
             penname_to_name[name] = penname_list[k]
 
         # 更新されたUUIDリストをDataFrameに設定
@@ -102,12 +106,11 @@ def get_plates_list(excel_path):
 
     # 変更を保存
     df.to_excel(excel_path, index=False)
-    # print(plates_list)
     return plates_list
 
 
 def get_uuid_list(excel_path):
-    df = pd.read_excel(excel_path)
+    df = pd.read_excel(excel_path, dtype=str)
     uuid_series = df["uuid"]
 
     def process_uuid(uuid):
@@ -203,7 +206,7 @@ def generate_data_matrix(data, output_path, size=24):
 
 def get_ids_dict(excel_path):
     # 人ごとにsnsをまとめるver
-    df = pd.read_excel(excel_path)
+    df = pd.read_excel(excel_path, dtype=str)
     _name_list = df["お名前"]
     _instagram_list = df["Instagramのアカウント"]
     _twitter_list = df["Xのアカウント"]
@@ -235,7 +238,7 @@ def get_ids_dict(excel_path):
 
 
 def get_permission_dict(excel_path):
-    df = pd.read_excel(excel_path)
+    df = pd.read_excel(excel_path, dtype=str)
     penname_list = df["ペンネーム"]
     _permission_list = df["来場者が撮影可能か"]
     permission_dict = {}
