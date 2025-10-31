@@ -1,7 +1,7 @@
 {
-    "excel_path": "/Users/masataka/Downloads/2025春季写真展.xlsx",
+    "excel_path": "/Users/masataka/Downloads/2025　早稲田祭.xlsx",
     "outputFolder_path": "/Users/masataka/Desktop/plate",
     "year": "2025",
-    "exhibition_title": "フジ銀座",
-    "show_datamatrix": true
+    "exhibition_title": "WasedaFes",
+    "show_datamatrix": false
 }

@@ -196,8 +196,11 @@ def Process():
             "QRcode PDF",
             "Description PDF",
             "Caption PDF",
-            "Data Matrix",
         ]
+
+        # DataMatrixを表示する場合のみ、フォルダを作成する
+        if show_datamatrix_var.get():
+            mkdir_list.append("Data Matrix")
 
         # 設定ファイルを読み込む
         excel_path = dic["excel_path"]
@@ -315,7 +318,7 @@ def Process():
 show_datamatrix_var = customtkinter.BooleanVar(value=show_datamatrix)
 show_datamatrix_checkbox = customtkinter.CTkCheckBox(
     master=app,
-    text="アンケート用のDataMatrixを表示する",
+    text="オンラインアンケート用のDataMatrixを表示する",
     variable=show_datamatrix_var,
 )
 # チェックボックスの位置を左揃えにする
@@ -331,7 +334,7 @@ button.place(relx=0.5, rely=0.85, anchor=tkinter.CENTER)
 
 # バージョンと作者名の表示
 version_label = customtkinter.CTkLabel(
-    master=app, text="Version 3.0.0", font=("Arial", 10), text_color="gray"
+    master=app, text="Version 3.1", font=("Arial", 10), text_color="gray"
 )
 version_label.place(relx=0.02, rely=0.98, anchor=tkinter.SW)
 

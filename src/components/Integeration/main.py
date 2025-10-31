@@ -59,10 +59,7 @@ def textParagraph(c, text, x, y):
 
 def generate_caption_pdf(excel_path, output_path, main_path, show_datamatrix=True):
     # わざわざsys.argv使っているのは、pyinstallerでexe化した時のエラーを回避するため
-    if system == "Darwin":
-        font_path = f"{main_path}/assets/ttf/MeiryoUI-03.ttf"
-    else:
-        font_path = f"{main_path}\\assets\\ttf\\MeiryoUI-03.ttf"
+    font_path = os.path.join(main_path, "assets", "ttf", "MeiryoUI-03.ttf")
     pdfmetrics.registerFont(cidfonts.UnicodeCIDFont("HeiseiMin-W3"))
     pdfmetrics.registerFont(TTFont("usefont", font_path))
 
@@ -83,15 +80,9 @@ def generate_caption_pdf(excel_path, output_path, main_path, show_datamatrix=Tru
         # A4のpdfに必要なものを描画する, このwhile文はページごとに回る
         while j < cards_num[0] * cards_num[1]:
             # A4のpdfを作成する
-            if system == "Darwin":
-                file_name = f"{output_path}/Caption PDF/caption_{i}.pdf"
-            else:
-                try:
-                    os.makedirs(f"{output_path}\\Caption PDF\\each PDF", exist_ok=True)
-                except:
-                    print("Error", f"{output_path}\\Caption PDF\\each PDF")
-                    pass
-                file_name = f"{output_path}\\Caption PDF\\each PDF\\caption_{i}.pdf"
+            folder_path = os.path.join(output_path, "Caption PDF")
+            os.makedirs(folder_path, exist_ok=True)
+            file_name = os.path.join(folder_path, f"caption_{i}.pdf")
             page = canvas.Canvas(file_name, pagesize=A4)
 
             # 線の太さを指定
@@ -270,15 +261,20 @@ def generate_caption_pdf(excel_path, output_path, main_path, show_datamatrix=Tru
 
                     print(f"each_uuid: {each_uuid}")
                     # DataMatrixの生成と描画
-                    if show_datamatrix:
+                    if show_datamatrix and each_uuid:  # UUIDが空でない場合のみ処理
                         # escapeを使って，文字列をエスケープ
                         escaped_penname = penname.replace("/", "-")
                         escaped_title = title.replace("/", "-")
 
                         # DataMatrixの生成
+                        if system == "Darwin":
+                            data_matrix_path = f"{output_path}/Data Matrix/{escaped_penname}_{escaped_title}.png"
+                        else:
+                            data_matrix_path = f"{output_path}\\Data Matrix\\{escaped_penname}_{escaped_title}.png"
+
                         generate_data_matrix(
                             each_uuid,
-                            f"{output_path}/Data Matrix/{escaped_penname}_{escaped_title}.png",
+                            data_matrix_path,
                         )
 
                         # DataMatrixの描画
@@ -319,7 +315,7 @@ def generate_caption_pdf(excel_path, output_path, main_path, show_datamatrix=Tru
                             - card[0] * 0.08
                             - to_px(notaking_width)
                             - 4
-                            - to_px(data_matrix_width),
+                            - (to_px(data_matrix_width) if show_datamatrix else 0),
                             pos[1] + card[1] * 0.95 - to_px(notaking_width),
                             width=to_px(notaking_width),
                             height=to_px(notaking_width),
