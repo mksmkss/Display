@@ -49,6 +49,19 @@ Windows / Mac 用の実行ファイルは，GitHub Actions が自動でビルド
   自動的に最新版がダウンロードされ,デスクトップに「Display」というアイコンが作成されます．\
   次回以降アップデートしたいときも,同じ1行をもう一度実行すれば最新版に上書きされます．
 
+- **使う人（インストールする人・Mac）**\
+  `Launchpad`などから`ターミナル`を開いてください．\
+  以下の1行をコピーして貼り付け,Enterキーを押すだけでインストールできます．
+  ```sh
+  curl -fsSL https://raw.githubusercontent.com/mksmkss/Display/main/install.sh | bash
+  ```
+  自動的に最新版がダウンロードされ,`~/Applications/Display/Display.app`に展開されたうえで
+  自動的に開きます．次回以降アップデートしたいときも,同じ1行をもう一度実行すれば最新版に上書きされます．\
+  ※ このアプリはApple公証(notarize)されていないため,通常はダブルクリックすると
+  「開発元が未確認のため開けません」と表示されます．このインストーラーは
+  `xattr -cr`でその制限を解除するため,インストール後は問題なく起動できます．
+  もし手動でダウンロードした場合は,アイコンを右クリック→「開く」を選ぶことで同様に起動できます．
+
   ※ zipを手動でダウンロードしたい場合は,[Releases](../../releases) ページから
   `Display-Windows.zip`（Windowsの場合）または `Display-macOS.zip`（Macの場合）を
   ダウンロードして展開し,中の `Display.exe`（Mac版は`Display.app`）を実行しても構いません．\
