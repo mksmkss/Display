@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+
+# PyInstaller local build output (CI builds these fresh and publishes to Releases)
+build/
+*.spec

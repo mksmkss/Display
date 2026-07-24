@@ -1,0 +1,101 @@
+name: Build and Release
+
+# Windows / macOS 用の実行ファイルを GitHub Actions 上で自動ビルドするワークフロー。
+#
+# - "v" で始まるタグ（例: v3.1.0）を push すると、Windows / macOS 両方の実行ファイルを
+#   ビルドし、GitHub Releases に自動でアップロードします。開発機（Mac）で
+#   Windows 向けビルドを行う必要はありません。
+# - GitHub の Actions タブから "Run workflow" ボタンで手動実行することもできます。
+#   その場合はリリースを作らず、ビルド結果を Artifacts としてダウンロードできます。
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            asset_name: Display-Windows
+          - os: macos-latest
+            asset_name: Display-macOS
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build executable (Windows)
+        if: runner.os == 'Windows'
+        run: >
+          pyinstaller gui_2.py --onefile --windowed --name Display
+          --icon icon.ico
+          --collect-all customtkinter
+          --collect-all pylibdmtx
+          --collect-all budoux
+
+      - name: Build executable (macOS)
+        if: runner.os == 'macOS'
+        run: >
+          pyinstaller gui_2.py --onefile --windowed --name Display
+          --collect-all customtkinter
+          --collect-all pylibdmtx
+          --collect-all budoux
+
+      - name: Assemble release folder (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mkdir -p "release/Display"
+          cp "dist/Display.exe" "release/Display/"
+          cp -R assets "release/Display/"
+          cp settings.json "release/Display/"
+          cp license "release/Display/"
+
+      - name: Assemble release folder (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          mkdir -p "release/Display"
+          cp -R "dist/Display.app" "release/Display/"
+          cp -R assets "release/Display/"
+          cp settings.json "release/Display/"
+          cp license "release/Display/"
+
+      - name: Zip artifact (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path "release/Display" -DestinationPath "${{ matrix.asset_name }}.zip"
+
+      - name: Zip artifact (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          cd release
+          zip -r "../${{ matrix.asset_name }}.zip" Display
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: ${{ matrix.asset_name }}.zip
+
+      - name: Upload to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.asset_name }}.zip

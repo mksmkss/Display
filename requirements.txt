@@ -1,0 +1,10 @@
+customtkinter>=5.2
+Pillow>=10.0
+pandas>=2.0
+numpy>=1.24
+reportlab>=4.0
+budoux>=0.6
+pyqrcode>=1.2
+pylibdmtx>=0.1.10
+PyPDF2>=3.0
+openpyxl>=3.1

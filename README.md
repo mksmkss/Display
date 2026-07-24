@@ -33,3 +33,30 @@
     保存するファイルは,`2022 早稲田祭写真展`のようにしてください.
 3. プログラムの実行 \
 アプリケーション内で,エクセルファイルと保存するフォルダーを選択して,`Generate`を押してください.
+
+## アプリのインストール（コードを書けない人向け）
+
+Windows / Mac 用の実行ファイルは，GitHub Actions が自動でビルドして
+[Releases](../../releases) ページに公開します．開発者がMacで手動でWindows用に
+ビルドする必要はありません．
+
+- **使う人（インストールする人）**\
+  [Releases](../../releases) ページから最新版の `Display-Windows.zip`（Windowsの場合）
+  または `Display-macOS.zip`（Macの場合）をダウンロードし,展開（解凍）してください．\
+  中に入っている `Display.exe`（Mac版は`Display.app`）をダブルクリックすれば起動します．
+  インストール作業やPythonのセットアップは不要です．
+
+- **開発する人（新しいバージョンを配布する人）**\
+  1. `gui_2.py` 内の `version_label` の表示を更新するなど，通常通り変更を加えて `main` にマージしてください．
+  2. バージョンタグを作成してpushします．
+     ```sh
+     git tag v3.1.0
+     git push origin v3.1.0
+     ```
+  3. タグをpushすると `.github/workflows/build-release.yml` が自動的に実行され,
+     Windows / macOS 両方の実行ファイルがビルドされ,Releaseとして公開されます．
+     数分待てば[Releases](../../releases)ページに新しいzipが並びます．
+
+  タグをpushせずに動作確認だけしたい場合は,GitHubの「Actions」タブから
+  `Build and Release` を選択して「Run workflow」を押すと,Releaseを作らずに
+  ビルド結果だけをArtifactsとしてダウンロードできます．
