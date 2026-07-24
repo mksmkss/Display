@@ -33,3 +33,51 @@
     保存するファイルは,`2022 早稲田祭写真展`のようにしてください.
 3. プログラムの実行 \
 アプリケーション内で,エクセルファイルと保存するフォルダーを選択して,`Generate`を押してください.
+
+## アプリのインストール（コードを書けない人向け）
+
+Windows / Mac 用の実行ファイルは，GitHub Actions が自動でビルドして
+[Releases](../../releases) ページに公開します．開発者がMacで手動でWindows用に
+ビルドする必要はありません．
+
+- **使う人（インストールする人・Windows）**\
+  Windowsキーを押して`PowerShell`と入力し,PowerShellを開いてください．\
+  以下の1行をコピーして貼り付け,Enterキーを押すだけでインストールできます．
+  ```powershell
+  irm https://raw.githubusercontent.com/mksmkss/Display/main/install.ps1 | iex
+  ```
+  自動的に最新版がダウンロードされ,デスクトップに「Display」というアイコンが作成されます．\
+  次回以降アップデートしたいときも,同じ1行をもう一度実行すれば最新版に上書きされます．
+
+- **使う人（インストールする人・Mac）**\
+  `Launchpad`などから`ターミナル`を開いてください．\
+  以下の1行をコピーして貼り付け,Enterキーを押すだけでインストールできます．
+  ```sh
+  curl -fsSL https://raw.githubusercontent.com/mksmkss/Display/main/install.sh | bash
+  ```
+  自動的に最新版がダウンロードされ,`~/Applications/Display/Display.app`に展開されたうえで
+  自動的に開きます．次回以降アップデートしたいときも,同じ1行をもう一度実行すれば最新版に上書きされます．\
+  ※ このアプリはApple公証(notarize)されていないため,通常はダブルクリックすると
+  「開発元が未確認のため開けません」と表示されます．このインストーラーは
+  `xattr -cr`でその制限を解除するため,インストール後は問題なく起動できます．
+  もし手動でダウンロードした場合は,アイコンを右クリック→「開く」を選ぶことで同様に起動できます．
+
+  ※ zipを手動でダウンロードしたい場合は,[Releases](../../releases) ページから
+  `Display-Windows.zip`（Windowsの場合）または `Display-macOS.zip`（Macの場合）を
+  ダウンロードして展開し,中の `Display.exe`（Mac版は`Display.app`）を実行しても構いません．\
+  いずれの方法でも,インストール作業やPythonのセットアップは不要です．
+
+- **開発する人（新しいバージョンを配布する人）**\
+  1. `gui_2.py` 内の `version_label` の表示を更新するなど，通常通り変更を加えて `main` にマージしてください．
+  2. バージョンタグを作成してpushします．
+     ```sh
+     git tag v3.1.0
+     git push origin v3.1.0
+     ```
+  3. タグをpushすると `.github/workflows/build-release.yml` が自動的に実行され,
+     Windows / macOS 両方の実行ファイルがビルドされ,Releaseとして公開されます．
+     数分待てば[Releases](../../releases)ページに新しいzipが並びます．
+
+  タグをpushせずに動作確認だけしたい場合は,GitHubの「Actions」タブから
+  `Build and Release` を選択して「Run workflow」を押すと,Releaseを作らずに
+  ビルド結果だけをArtifactsとしてダウンロードできます．
