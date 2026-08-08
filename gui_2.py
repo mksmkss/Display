@@ -29,7 +29,21 @@ main_height = 320
 app.geometry(f"{main_width}x{main_height}")
 app.title("Plate Generator")
 
-main_path = os.path.dirname(sys.argv[0])
+if getattr(sys, "frozen", False):
+    if system == "Darwin":
+        # PyInstallerのonefile+windowedでMacをビルドすると
+        # Display.app/Contents/MacOS/Display という構造になる。
+        # settings.json や assets はDisplay.appと同じ階層（4つ上）にあるため、
+        # そこまでたどり着く必要がある。
+        main_path = os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.dirname(sys.executable)))
+        )
+    else:
+        # Windowsのonefile exeは、exe自身の隣にassets/settings.jsonがある
+        main_path = os.path.dirname(sys.executable)
+else:
+    # `python gui_2.py` で直接実行している開発時
+    main_path = os.path.dirname(os.path.abspath(__file__))
 print(main_path)
 
 # 設定ファイルを読み込む．過去のログ（pathなど）を保存しておくためのもの
