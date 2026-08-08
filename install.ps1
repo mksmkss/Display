@@ -24,11 +24,23 @@ Remove-Item $zipPath
 
 $exePath = Join-Path $installDir "Display\Display.exe"
 
-$WshShell = New-Object -ComObject WScript.Shell
-$shortcut = $WshShell.CreateShortcut("$env:USERPROFILE\Desktop\Display.lnk")
-$shortcut.TargetPath = $exePath
-$shortcut.WorkingDirectory = Split-Path $exePath
-$shortcut.Save()
+try {
+    $desktopPath = [Environment]::GetFolderPath("Desktop")
+    if (-not (Test-Path $desktopPath)) {
+        New-Item -ItemType Directory -Path $desktopPath -Force | Out-Null
+    }
 
-Write-Host ""
-Write-Host "インストール完了！デスクトップの「Display」アイコンから起動できます。"
+    $WshShell = New-Object -ComObject WScript.Shell
+    $shortcut = $WshShell.CreateShortcut((Join-Path $desktopPath "Display.lnk"))
+    $shortcut.TargetPath = $exePath
+    $shortcut.WorkingDirectory = Split-Path $exePath
+    $shortcut.Save()
+
+    Write-Host ""
+    Write-Host "インストール完了！デスクトップの「Display」アイコンから起動できます。"
+}
+catch {
+    Write-Warning "デスクトップショートカットの作成に失敗しました: $_"
+    Write-Host ""
+    Write-Host "インストール自体は完了しています。実行ファイル: $exePath"
+}
